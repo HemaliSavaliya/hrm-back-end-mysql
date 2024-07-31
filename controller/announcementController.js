@@ -27,7 +27,7 @@ async function uploadAnnounceFileToFTP(files) {
 
         for (const file of files) {
             const localFilePath = `./upload/announce_doc/${file.filename}`;
-            const remoteFilePath = `/domains/stackholic.io/public_html/HRM/upload/announcement_document/${file.filename}`;
+            const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/announcement_document/${file.filename}`;
 
             await client.uploadFrom(localFilePath, remoteFilePath);
 
@@ -44,7 +44,7 @@ async function uploadAnnounceFileToFTP(files) {
 // Function to download file from FTP server
 async function downloadFileFromFTP(res, filename) {
     const client = new ftp.Client();
-    const remoteFilePath = `/domains/stackholic.io/public_html/HRM/upload/announcement_document/${filename}`;
+    const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/announcement_document/${filename}`;
 
     try {
         await client.access({
@@ -84,7 +84,7 @@ async function downloadFileFromFTP(res, filename) {
 //         });
 
 //         for (const filename of filenames) {
-//             const remoteFilePath = `/domains/stackholic.io/public_html/HRM/upload/announcement_document/${filename}`;
+//             const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/announcement_document/${filename}`;
 
 //             await client.remove(remoteFilePath);
 

@@ -27,7 +27,7 @@ async function uploadProjectFileToFtp(files) {
 
         for (const file of files) {
             const localFilePath = `./upload/project_doc/${file.filename}`;
-            const remoteFilePath = `/domains/stackholic.io/public_html/HRM/upload/project_document/${file.filename}`;
+            const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/project_document/${file.filename}`;
 
             await client.uploadFrom(localFilePath, remoteFilePath);
 
@@ -44,7 +44,7 @@ async function uploadProjectFileToFtp(files) {
 // Function to download file from FTP server
 async function downloadFileFromFTP(res, filename) {
     const client = new ftp.Client();
-    const remoteFilePath = `/domains/stackholic.io/public_html/HRM/upload/project_document/${filename}`;
+    const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/project_document/${filename}`;
 
     try {
         await client.access({

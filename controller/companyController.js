@@ -39,7 +39,7 @@ async function downloadFileFromFTP(res, filename) {
     const client = new ftp.Client();
 
     // Retrieve the remote file path
-    const remoteFilePath = `/domains/stackholic.io/public_html/HRM/upload/company_logo/${filename}`;
+    const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/company_logo/${filename}`;
 
     try {
         // Connect to the FTP server using credentials
@@ -83,7 +83,7 @@ module.exports.addCompany = async (req, res) => {
                     }
 
                     const localFilePath = `./upload/company_logo/${req.file.filename}`;
-                    const remoteFilePath = `/domains/stackholic.io/public_html/HRM/upload/company_logo/${req.file.filename}`
+                    const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/company_logo/${req.file.filename}`
 
                     await uploadLogoToFTP(localFilePath, remoteFilePath);
 
@@ -138,7 +138,7 @@ module.exports.updateCompany = async (req, res) => {
 
                     if (req.file) {
                         const localFilePath = `./upload/company_logo/${req.file.filename}`;
-                        const remoteFilePath = `/domains/stackholic.io/public_html/HRM/upload/company_logo/${req.file.filename}`
+                        const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/company_logo/${req.file.filename}`
 
                         await uploadLogoToFTP(localFilePath, remoteFilePath);
                     }

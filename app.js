@@ -1,6 +1,6 @@
 const dotenv = require("dotenv");
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
 const bodyParser = require("body-parser");
 require("./config/config.js");
 const authRouter = require("./routes/authRoute");
@@ -22,20 +22,23 @@ const companyRouter = require("./routes/companyRoute");
 const adminRouter = require("./routes/adminRoute");
 const roleRouter = require("./routes/roleRoute");
 const permissionRouter = require("./routes/permissionRoute");
+const passwordRouter = require("./routes/forgotPasswordRoute.js");
 
 dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+);
 
 const PORT = process.env.PORT || 9000;
 
-app.get('/', (req, res) => {
-    res.status(200).send("Welcome to Home page!");
+app.get("/", (req, res) => {
+  res.status(200).send("Welcome to Home page!");
 });
 
 app.use("/api", authRouter);
@@ -57,10 +60,10 @@ app.use("/api", companyRouter);
 app.use("/api", adminRouter);
 app.use("/api", roleRouter);
 app.use("/api", permissionRouter);
+app.use("/api", passwordRouter);
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port: ${PORT}`);
+  console.log(`Server is running on port: ${PORT}`);
 });
-
 
 // # HRM-node-backend-goDaddy instance name  hrm-node-EP
