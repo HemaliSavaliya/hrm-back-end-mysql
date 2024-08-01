@@ -1,6 +1,12 @@
-const { addCompany, updateCompany, deleteCompany, companyList, getCompanyLogo } = require('../controller/companyController');
-const { authenticate } = require('../utils/authMiddleware');
-const router = require('express').Router();
+const {
+  addCompany,
+  updateCompany,
+  deleteCompany,
+  companyList,
+  getCompanyLogo,
+} = require("../controller/companyController");
+const { authenticate } = require("../utils/authMiddleware");
+const router = require("express").Router();
 
 router.post("/add-company", authenticate, addCompany);
 router.put("/update-company/:id", authenticate, updateCompany);
