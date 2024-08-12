@@ -76,7 +76,7 @@ const pool = mysql.createPool({
 });
 
 pool.on("connection", (connection) => {
-  console.log("Connected to database");
+  console.log("Connected to database", connection);
 });
 
 pool.on("error", (err) => {

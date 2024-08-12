@@ -6,22 +6,22 @@ const pool = require("../config/config");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-module.exports.login = async (req, res) => {
+module.exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     const sql = `
-            SELECT id, name, email, password, NULL AS deleted, NULL AS companyId, 'SuperAdmin' AS role, 'superadmin' AS user_type FROM hrm_superadmin WHERE email = ?
-            UNION ALL
-            SELECT id, name, email, password, deleted, companyId, 'Admin' AS role, 'admin' AS user_type FROM hrm_admins WHERE email = ?
-            UNION ALL
-            SELECT id, name, email, password, deleted, companyId, role, 'employee' AS user_type FROM hrm_employees WHERE email = ?
-        `;
+      SELECT id, name, email, password, NULL AS deleted, NULL AS companyId, 'SuperAdmin' AS role, 'superadmin' AS user_type FROM hrm_superadmin WHERE email = ?
+      UNION ALL
+      SELECT id, name, email, password, deleted, companyId, 'Admin' AS role, 'admin' AS user_type FROM hrm_admins WHERE email = ?
+      UNION ALL
+      SELECT id, name, email, password, deleted, companyId, role, 'employee' AS user_type FROM hrm_employees WHERE email = ?
+    `;
 
     pool.query(sql, [email, email, email], async (err, results) => {
       if (err) {
-        console.error("Error during login:", err);
-        return res.status(500).json({ error: "Internal Server Error" });
+        // console.error("Error during login:", err);
+        return res.status(500).json({ error: "Internal Server Error" }, err);
       }
 
       if (results.length === 0) {
@@ -58,8 +58,9 @@ module.exports.login = async (req, res) => {
       });
     });
   } catch (error) {
-    console.error("Error during login", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    // console.error("Error during login", error);
+    next(error);
+    return res.status(500).json({ error: "Internal Server Error" }, error);
   }
 };
 
@@ -217,7 +218,7 @@ module.exports.addSuperAdmin = async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    connection.query(
+    pool.query(
       insertSql,
       [name, email, hashedPassword, role || "SuperAdmin"],
       (err, result) => {
@@ -233,6 +234,6 @@ module.exports.addSuperAdmin = async (req, res) => {
     );
   } catch (error) {
     console.error("Error adding SuperAdmin", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: "Internal Server Error" }, error);
   }
 };
