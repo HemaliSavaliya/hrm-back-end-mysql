@@ -84,3 +84,56 @@ pool.on("error", (err) => {
 });
 
 module.exports = pool;
+
+// // For live with the use of pool
+// const mysql = require("mysql");
+// const dotenv = require("dotenv");
+// dotenv.config();
+
+// const poolConfig = {
+//   connectionLimit: 10,
+//   host: process.env.DATABASE_HOST,
+//   user: process.env.DATABASE_USER,
+//   password: process.env.DATABASE_PASSWORD,
+//   database: process.env.DATABASE_NAME,
+//   port: process.env.DATABASE_PORT || 3306,
+// };
+
+// // Optional SSL configuration if required by your database
+// if (process.env.DATABASE_SSL === "true") {
+//   poolConfig.ssl = {
+//     rejectUnauthorized: true,
+//   };
+// }
+
+// const pool = mysql.createPool(poolConfig);
+
+// pool.on("connection", (connection) => {
+//   console.log("Connected to database with ID:", connection.threadId);
+// });
+
+// pool.on("error", (err) => {
+//   console.error("Database error", err.code, err.message);
+// });
+
+// pool.getConnection((err, connection) => {
+//   if (err) {
+//     switch (err.code) {
+//       case "PROTOCOL_CONNECTION_LOST":
+//         console.error("Database connection was closed.");
+//         break;
+//       case "ER_CON_COUNT_ERROR":
+//         console.error("Database has too many connections.");
+//         break;
+//       case "ECONNREFUSED":
+//         console.error("Database connection was refused.");
+//         break;
+//       default:
+//         console.error("Database connection error:", err.code, err.message);
+//     }
+//   }
+
+//   if (connection) connection.release();
+// });
+
+// module.exports = pool;
