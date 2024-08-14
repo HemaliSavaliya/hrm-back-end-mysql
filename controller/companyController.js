@@ -62,6 +62,7 @@ async function downloadFileFromFTP(res, filename) {
   }
 }
 
+// Add company function
 module.exports.addCompany = async (req, res) => {
   try {
     // Check if the user making the request is an superAdmin

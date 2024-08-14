@@ -171,7 +171,12 @@ module.exports.addAnnouncement = async (req, res) => {
 module.exports.getDocument = async (req, res) => {
   try {
     // Check if the user making the request is an admin or HR
-    if (req.user && (req.user.role === "Admin" || req.user.role === "HR")) {
+    if (
+      req.user &&
+      (req.user.role === "Admin" ||
+        req.user.role === "HR" ||
+        req.user.role === "Employee")
+    ) {
       const documentName = req.params.documentName;
 
       await downloadFileFromFTP(res, documentName);
