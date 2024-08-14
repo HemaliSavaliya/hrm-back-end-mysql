@@ -320,12 +320,10 @@ module.exports.updateStatus = async (req, res) => {
           console.error("Error updating project status:", err);
           return res.status(500).json({ error: "Internal Server Error" });
         }
-        res
-          .status(200)
-          .json({
-            success: true,
-            message: "Project status updated successfully",
-          });
+        res.status(200).json({
+          success: true,
+          message: "Project status updated successfully",
+        });
       });
     } else {
       // User is not an admin, deny access
@@ -412,12 +410,10 @@ module.exports.deleteDocument = async (req, res) => {
                       .json({ error: "Internal Server Error" });
                   }
 
-                  res
-                    .status(200)
-                    .json({
-                      success: true,
-                      message: "Specified documents deleted successfully",
-                    });
+                  res.status(200).json({
+                    success: true,
+                    message: "Specified documents deleted successfully",
+                  });
                 }
               );
             } catch (error) {

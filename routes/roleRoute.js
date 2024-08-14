@@ -1,6 +1,11 @@
-const { addRole, updateRoleStatus, roleList, getAllRolesName } = require('../controller/roleController');
-const { authenticate } = require('../utils/authMiddleware');
-const router = require('express').Router();
+const {
+  addRole,
+  updateRoleStatus,
+  roleList,
+  getAllRolesName,
+} = require("../controller/roleController");
+const { authenticate } = require("../utils/authMiddleware");
+const router = require("express").Router();
 
 router.post("/add-role", authenticate, addRole);
 router.put("/update-role-status/:id", authenticate, updateRoleStatus);

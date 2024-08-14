@@ -1,4 +1,8 @@
-const { addPermission, deletePermission, getPermission } = require("../controller/permissionController");
+const {
+  addPermission,
+  deletePermission,
+  getPermission,
+} = require("../controller/permissionController");
 const { authenticate } = require("../utils/authMiddleware");
 const router = require("express").Router();
 

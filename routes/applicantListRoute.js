@@ -1,4 +1,4 @@
-const { applicantList } = require('../controller/applicantListController');
+const { applicantList } = require("../controller/applicantListController");
 const router = require("express").Router();
 
 // router.post("/add-applicant-list", addApplicantList);

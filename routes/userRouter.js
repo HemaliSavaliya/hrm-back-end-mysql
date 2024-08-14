@@ -1,6 +1,16 @@
-const { addEmp, updateEmp, deleteEmp, empList, empListById, updatePassword, forgotPassword, getEmpDocument, deleteDocument } = require('../controller/userController');
-const { authenticate } = require('../utils/authMiddleware');
-const router = require('express').Router();
+const {
+  addEmp,
+  updateEmp,
+  deleteEmp,
+  empList,
+  empListById,
+  updatePassword,
+  forgotPassword,
+  getEmpDocument,
+  deleteDocument,
+} = require("../controller/userController");
+const { authenticate } = require("../utils/authMiddleware");
+const router = require("express").Router();
 
 router.post("/add-emp", authenticate, addEmp);
 router.post("/update-password", authenticate, updatePassword);

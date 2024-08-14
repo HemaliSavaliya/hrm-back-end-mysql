@@ -1,6 +1,11 @@
-const { addCreateTodos, createTodosList, updateTodos, deleteTodos } = require('../controller/calendarTodoController');
-const { authenticate } = require('../utils/authMiddleware');
-const router = require('express').Router();
+const {
+  addCreateTodos,
+  createTodosList,
+  updateTodos,
+  deleteTodos,
+} = require("../controller/calendarTodoController");
+const { authenticate } = require("../utils/authMiddleware");
+const router = require("express").Router();
 
 router.post("/todos", authenticate, addCreateTodos);
 router.put("/update-todos/:id", authenticate, updateTodos);

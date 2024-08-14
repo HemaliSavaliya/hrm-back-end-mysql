@@ -1,6 +1,12 @@
-const { addLeaveRequest, updateLeaveReqStatus, leaveRequestList, leaveRequestListRoleWise, fetchLeaveBalance } = require('../controller/leaveRequestController');
-const { authenticate } = require('../utils/authMiddleware');
-const router = require('express').Router();
+const {
+  addLeaveRequest,
+  updateLeaveReqStatus,
+  leaveRequestList,
+  leaveRequestListRoleWise,
+  fetchLeaveBalance,
+} = require("../controller/leaveRequestController");
+const { authenticate } = require("../utils/authMiddleware");
+const router = require("express").Router();
 
 router.post("/add-leaveRequest", authenticate, addLeaveRequest);
 router.put("/update-leave-status", authenticate, updateLeaveReqStatus);

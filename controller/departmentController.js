@@ -44,7 +44,7 @@ module.exports.addDepartment = async (req, res) => {
           departmentEmail,
           startingDate,
           status,
-          false
+          false,
         ],
         (err, result) => {
           if (err) {
@@ -110,12 +110,10 @@ module.exports.updateDepartment = async (req, res) => {
             console.error("Error updating department:", err);
             return res.status(500).json({ error: "Internal Server Error" });
           }
-          res
-            .status(200)
-            .json({
-              success: true,
-              message: "Department updated successfully",
-            });
+          res.status(200).json({
+            success: true,
+            message: "Department updated successfully",
+          });
         }
       );
     } else {
@@ -143,12 +141,10 @@ module.exports.updateStatus = async (req, res) => {
           console.error("Error updating department status:", err);
           return res.status(500).json({ error: "Internal Server Error" });
         }
-        res
-          .status(200)
-          .json({
-            success: true,
-            message: "Department status updated successfully",
-          });
+        res.status(200).json({
+          success: true,
+          message: "Department status updated successfully",
+        });
       });
     } else {
       // User is not an admin or HR, deny access

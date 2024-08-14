@@ -1,4 +1,9 @@
-const { addAdmin, updateAdmin, deleteAdmin, adminList } = require("../controller/adminController");
+const {
+  addAdmin,
+  updateAdmin,
+  deleteAdmin,
+  adminList,
+} = require("../controller/adminController");
 const { authenticate } = require("../utils/authMiddleware");
 const router = require("express").Router();
 

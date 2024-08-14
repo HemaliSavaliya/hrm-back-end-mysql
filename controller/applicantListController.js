@@ -20,23 +20,23 @@ const connection = require("../config/config");
 // }
 
 module.exports.applicantList = async (req, res) => {
-    try {
-        const sql = "SELECT * FROM hrm_applicant_list";
+  try {
+    const sql = "SELECT * FROM hrm_applicant_list";
 
-        connection.query(sql, (err, results) => {
-            if (err) {
-                console.error("Error Fetching Applicant List", err);
-                return res.status(500).json({ error: "Internal Server Error" });
-            }
-
-            if (results.length > 0) {
-                res.status(200).json(results);
-            } else {
-                res.status(404).json({ error: "No Applicant List Found!" });
-            }
-        });
-    } catch (error) {
-        console.error("Error Fetching Applicant List", error);
+    connection.query(sql, (err, results) => {
+      if (err) {
+        console.error("Error Fetching Applicant List", err);
         return res.status(500).json({ error: "Internal Server Error" });
-    }
-}
+      }
+
+      if (results.length > 0) {
+        res.status(200).json(results);
+      } else {
+        res.status(404).json({ error: "No Applicant List Found!" });
+      }
+    });
+  } catch (error) {
+    console.error("Error Fetching Applicant List", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};

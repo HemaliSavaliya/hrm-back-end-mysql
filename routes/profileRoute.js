@@ -1,5 +1,9 @@
-const { profile, resetProfileImage, getProfileImage } = require('../controller/profileController');
-const router = require('express').Router();
+const {
+  profile,
+  resetProfileImage,
+  getProfileImage,
+} = require("../controller/profileController");
+const router = require("express").Router();
 
 router.post("/add-profile-image", profile);
 router.post("/reset-profile-image", resetProfileImage);

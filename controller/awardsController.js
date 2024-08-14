@@ -60,7 +60,7 @@ module.exports.addAwards = async (req, res) => {
                   userResults[0].id,
                   userResults[0].name,
                   req.body.reward,
-                  false
+                  false,
                 ],
                 async (insertErr, insertResults) => {
                   if (insertErr) {
@@ -70,12 +70,10 @@ module.exports.addAwards = async (req, res) => {
                       .json({ error: "Internal Server Error" });
                   }
 
-                  res
-                    .status(200)
-                    .json({
-                      success: true,
-                      message: "Award added successfully",
-                    });
+                  res.status(200).json({
+                    success: true,
+                    message: "Award added successfully",
+                  });
                 }
               );
             }

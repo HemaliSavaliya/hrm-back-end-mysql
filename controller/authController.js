@@ -43,7 +43,8 @@ module.exports.login = async (req, res, next) => {
       // Authenticate successfully, generate and return a token
       const token = jwt.sign(
         { id: user.id, role: user.role },
-        process.env.JWT_SECRET_KEY
+        process.env.JWT_SECRET_KEY,
+        { expiresIn: "10h" }
       );
 
       res.status(200).json({

@@ -1,6 +1,13 @@
-const { addAnnouncement, announcementList, updateAnnouncement, deleteAnnouncement, getDocument, deleteDocument } = require('../controller/announcementController');
-const { authenticate } = require('../utils/authMiddleware');
-const router = require('express').Router();
+const {
+  addAnnouncement,
+  announcementList,
+  updateAnnouncement,
+  deleteAnnouncement,
+  getDocument,
+  deleteDocument,
+} = require("../controller/announcementController");
+const { authenticate } = require("../utils/authMiddleware");
+const router = require("express").Router();
 
 router.post("/add-announcement", authenticate, addAnnouncement);
 router.put("/update-announcement/:id", authenticate, updateAnnouncement);
