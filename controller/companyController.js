@@ -83,6 +83,17 @@ module.exports.addCompany = async (req, res) => {
           endDate,
         } = req.body;
 
+        // Convert empty strings to null
+        const panValue =
+          companyPan && companyPan.trim() !== "" ? companyPan : null;
+        const gstValue =
+          companyGST && companyGST.trim() !== "" ? companyGST : null;
+
+        // Ensure that a file was uploaded
+        if (!req.file) {
+          return res.status(400).json({ error: "Company logo is required" });
+        }
+
         // Insert the new company into the company table
         const insertSql = `INSERT INTO hrm_companys (companyName, companyEmail, companyPan, companyGST, subscription, startDate, endDate, companyLogo, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
@@ -91,8 +102,8 @@ module.exports.addCompany = async (req, res) => {
           [
             companyName,
             companyEmail,
-            companyPan,
-            companyGST,
+            panValue,
+            gstValue,
             subscription,
             startDate || null,
             endDate || null,
