@@ -96,7 +96,7 @@ module.exports.addCompany = async (req, res) => {
             subscription,
             startDate || null,
             endDate || null,
-            req.file.filename || null,
+            req.file.filename,
             false,
           ],
           async (err, result) => {
@@ -108,11 +108,18 @@ module.exports.addCompany = async (req, res) => {
             const localFilePath = `./upload/company_logo/${req.file.filename}`;
             const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/company_logo/${req.file.filename}`;
 
-            await uploadLogoToFTP(localFilePath, remoteFilePath);
-
-            res
-              .status(200)
-              .json({ success: true, message: "Company Added Successfully" });
+            try {
+              await uploadLogoToFTP(localFilePath, remoteFilePath);
+              res.status(200).json({
+                success: true,
+                message: "Company Added Successfully",
+              });
+            } catch (uploadError) {
+              console.error("Error uploading logo to FTP:", uploadError);
+              return res
+                .status(500)
+                .json({ error: "Error uploading logo to FTP" });
+            }
           }
         );
       });
