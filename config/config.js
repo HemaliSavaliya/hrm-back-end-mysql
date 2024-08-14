@@ -27,20 +27,22 @@ const mysql = require("mysql");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const pool = mysql.createPool({
-  connectionLimit: 10,
+// Database connection configuration
+const connection = mysql.createConnection({
+  connectionLimit: 100,
   host: process.env.DATABASE_HOST,
   user: process.env.DATABASE_USER,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
 });
 
-pool.on("connection", (connection) => {
-  console.log("Connected to database", connection);
+// Connect to MySQL database
+connection.connect((err) => {
+  if (err) {
+    console.error("Error connecting to database: " + err.stack);
+    return;
+  }
+  console.log("Connected to database");
 });
 
-pool.on("error", (err) => {
-  console.error("Database error", err);
-});
-
-module.exports = pool;
+module.exports = connection;
