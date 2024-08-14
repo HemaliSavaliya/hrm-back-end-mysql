@@ -30,10 +30,10 @@ dotenv.config();
 // Database connection configuration
 const connection = mysql.createConnection({
   connectionLimit: 100,
-  host: process.env.DATABASE_HOST,
-  user: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
-  database: process.env.DATABASE_NAME,
+  host: "srv784.hstgr.io",
+  user: "u441074635_hrm_stack_dash",
+  password: "Czfiu/B7",
+  database: "u441074635_hrm_stack_dash",
 });
 
 // Connect to MySQL database
