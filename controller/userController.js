@@ -251,7 +251,12 @@ module.exports.updateEmp = async (req, res) => {
     const userId = req.params.id; // Employee's user ID
 
     // Check if the user has admin or HR role
-    if (req.user && (req.user.role === "Admin" || req.user.role === "HR")) {
+    if (
+      req.user &&
+      (req.user.role === "Admin" ||
+        req.user.role === "HR" ||
+        req.user.role === "Employee")
+    ) {
       // Use Multer middleware to process the file upload
       uploadDocument(req, res, async (err) => {
         if (err) {
