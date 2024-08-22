@@ -23,6 +23,10 @@
 // module.exports = connection;
 
 // For live with the use of pool
+const mysql = require("mysql");
+const dotenv = require("dotenv");
+dotenv.config();
+
 const pool = mysql.createPool({
   connectionLimit: 10, // Adjust as needed
   host: "srv784.hstgr.io",
