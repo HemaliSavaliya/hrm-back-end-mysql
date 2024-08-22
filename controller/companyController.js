@@ -237,8 +237,9 @@ module.exports.deleteCompany = async (req, res) => {
       console.error("Error getting connection from pool:", err.stack);
       return res.status(500).json({ error: "Internal Server Error" });
     }
+
     try {
-      // Check if the user making the request is an superAdmin
+      // Check if the user making the request is a SuperAdmin
       if (req.user && req.user.role === "SuperAdmin") {
         const companyId = req.params.id;
 
@@ -246,25 +247,26 @@ module.exports.deleteCompany = async (req, res) => {
         connection.beginTransaction((err) => {
           if (err) {
             console.error("Error starting transaction:", err);
+            connection.release(); // Release connection back to the pool
             return res.status(500).json({ error: "Internal Server Error" });
           }
 
           const checkCompanyQuery =
             "SELECT deleted FROM hrm_companys WHERE id = ?";
-
           connection.query(checkCompanyQuery, [companyId], (err, result) => {
             if (err) {
-              console.error("Error Checking Company", err);
+              console.error("Error checking company:", err);
+              connection.rollback(() => connection.release()); // Rollback and release connection
               return res.status(500).json({ error: "Internal Server Error" });
             }
 
             if (result.length === 0) {
+              connection.rollback(() => connection.release()); // Rollback and release connection
               return res.status(404).json({ error: "Company not found" });
             }
 
             const isDeleted = result[0].deleted;
 
-            // Mark the company as deleted
             const deleteCompanyQuery = isDeleted
               ? "UPDATE hrm_companys SET deleted = false WHERE id = ?"
               : "UPDATE hrm_companys SET deleted = true WHERE id = ?";
@@ -272,11 +274,13 @@ module.exports.deleteCompany = async (req, res) => {
             connection.query(deleteCompanyQuery, [companyId], (err, result) => {
               if (err) {
                 connection.rollback(() => {
-                  console.error("Error deleting company:", err);
+                  connection.release(); // Rollback and release connection
+                  console.error("Error updating company:", err);
                   return res
                     .status(500)
                     .json({ error: "Internal Server Error" });
                 });
+                return; // Exit early to avoid further processing
               }
 
               // Array of related tables
@@ -297,10 +301,13 @@ module.exports.deleteCompany = async (req, res) => {
                 { tableName: "hrm_roles", foreignKey: "companyId" },
               ];
 
+              // Track errors in the forEach loop
+              let queryError = false;
+
               // Update related entries in each related table
-              relatedTables.forEach((table) => {
+              relatedTables.forEach((table, index) => {
                 let updateQuery;
-                if (table.tableName === "role") {
+                if (table.tableName === "hrm_roles") {
                   updateQuery = isDeleted
                     ? `UPDATE ${table.tableName} SET status = 'Enable' WHERE ${table.foreignKey} = ?`
                     : `UPDATE ${table.tableName} SET status = 'Disable' WHERE ${table.foreignKey} = ?`;
@@ -310,44 +317,50 @@ module.exports.deleteCompany = async (req, res) => {
                     : `UPDATE ${table.tableName} SET deleted = true WHERE ${table.foreignKey} = ?`;
                 }
 
-                connection.query(updateQuery, [companyId], (err, result) => {
+                connection.query(updateQuery, [companyId], (err) => {
                   if (err) {
-                    connection.rollback(() => {
-                      console.error(`Error updating ${table.tableName}`, err);
+                    queryError = true;
+                    console.error(`Error updating ${table.tableName}:`, err);
+                    connection.rollback(() => connection.release()); // Rollback and release connection
+                    if (index === relatedTables.length - 1) {
                       return res
                         .status(500)
                         .json({ error: "Internal Server Error" });
+                    }
+                  }
+
+                  // Commit the transaction after processing the last table
+                  if (index === relatedTables.length - 1 && !queryError) {
+                    connection.commit((err) => {
+                      if (err) {
+                        console.error("Error committing transaction:", err);
+                        connection.rollback(() => connection.release()); // Rollback and release connection
+                        return res
+                          .status(500)
+                          .json({ error: "Internal Server Error" });
+                      }
+
+                      const message = isDeleted
+                        ? "Company marked as undeleted"
+                        : "Company marked as deleted";
+
+                      connection.release(); // Release connection
+                      res.status(200).json({ message });
                     });
                   }
                 });
-              });
-
-              // Commit transaction if all queries succeed
-              connection.commit((err) => {
-                if (err) {
-                  connection.rollback(() => {
-                    console.error("Error committing transaction", err);
-                    return res
-                      .status(500)
-                      .json({ error: "Internal Server Error" });
-                  });
-                }
-
-                const message = isDeleted
-                  ? "Company marked as undeleted"
-                  : "Company marked as deleted";
-
-                res.status(200).json({ message });
               });
             });
           });
         });
       } else {
-        // User is not an superAdmin, deny access
+        // User is not a SuperAdmin, deny access
+        connection.release(); // Release connection
         res.status(403).json({ error: "Access denied" });
       }
     } catch (error) {
-      console.error("Error Delete Company", error);
+      console.error("Error deleting company:", error);
+      connection.release(); // Release connection
       return res.status(500).json({ error: "Internal Server Error" });
     }
   });
