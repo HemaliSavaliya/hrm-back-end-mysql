@@ -203,27 +203,23 @@ module.exports.updateCompany = async (req, res) => {
           ];
         }
 
-        pool.query(
-          updateCompanyQuery,
-          queryParams,
-          async (err, result) => {
-            if (err) {
-              console.error("Error updating company:", err);
-              return res.status(500).json({ error: "Internal Server Error" });
-            }
-
-            if (req.file) {
-              const localFilePath = `./upload/company_logo/${req.file.filename}`;
-              const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/company_logo/${req.file.filename}`;
-
-              await uploadLogoToFTP(localFilePath, remoteFilePath);
-            }
-
-            res
-              .status(200)
-              .json({ success: true, message: "Company updated successfully" });
+        pool.query(updateCompanyQuery, queryParams, async (err, result) => {
+          if (err) {
+            console.error("Error updating company:", err);
+            return res.status(500).json({ error: "Internal Server Error" });
           }
-        );
+
+          if (req.file) {
+            const localFilePath = `./upload/company_logo/${req.file.filename}`;
+            const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/company_logo/${req.file.filename}`;
+
+            await uploadLogoToFTP(localFilePath, remoteFilePath);
+          }
+
+          res
+            .status(200)
+            .json({ success: true, message: "Company updated successfully" });
+        });
       });
     } else {
       // User is not an superAdmin, deny access
@@ -236,117 +232,125 @@ module.exports.updateCompany = async (req, res) => {
 };
 
 module.exports.deleteCompany = async (req, res) => {
-  try {
-    // Check if the user making the request is an superAdmin
-    if (req.user && req.user.role === "SuperAdmin") {
-      const companyId = req.params.id;
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error getting connection from pool:", err.stack);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+    try {
+      // Check if the user making the request is an superAdmin
+      if (req.user && req.user.role === "SuperAdmin") {
+        const companyId = req.params.id;
 
-      // Begin transaction
-      pool.beginTransaction((err) => {
-        if (err) {
-          console.error("Error starting transaction:", err);
-          return res.status(500).json({ error: "Internal Server Error" });
-        }
-
-        const checkCompanyQuery =
-          "SELECT deleted FROM hrm_companys WHERE id = ?";
-
-        pool.query(checkCompanyQuery, [companyId], (err, result) => {
+        // Begin transaction
+        connection.beginTransaction((err) => {
           if (err) {
-            console.error("Error Checking Company", err);
+            console.error("Error starting transaction:", err);
             return res.status(500).json({ error: "Internal Server Error" });
           }
 
-          if (result.length === 0) {
-            return res.status(404).json({ error: "Company not found" });
-          }
+          const checkCompanyQuery =
+            "SELECT deleted FROM hrm_companys WHERE id = ?";
 
-          const isDeleted = result[0].deleted;
-
-          // Mark the company as deleted
-          const deleteCompanyQuery = isDeleted
-            ? "UPDATE hrm_companys SET deleted = false WHERE id = ?"
-            : "UPDATE hrm_companys SET deleted = true WHERE id = ?";
-
-          pool.query(deleteCompanyQuery, [companyId], (err, result) => {
+          connection.query(checkCompanyQuery, [companyId], (err, result) => {
             if (err) {
-              pool.rollback(() => {
-                console.error("Error deleting company:", err);
-                return res.status(500).json({ error: "Internal Server Error" });
-              });
+              console.error("Error Checking Company", err);
+              return res.status(500).json({ error: "Internal Server Error" });
             }
 
-            // Array of related tables
-            const relatedTables = [
-              { tableName: "hrm_admins", foreignKey: "companyId" },
-              { tableName: "hrm_announcements", foreignKey: "companyId" },
-              { tableName: "hrm_awards", foreignKey: "companyId" },
-              { tableName: "hrm_calendarevents", foreignKey: "companyId" },
-              { tableName: "hrm_calendartodo", foreignKey: "companyId" },
-              { tableName: "hrm_departments", foreignKey: "companyId" },
-              { tableName: "hrm_designations", foreignKey: "companyId" },
-              { tableName: "hrm_employees", foreignKey: "companyId" },
-              { tableName: "hrm_jobs_requirement", foreignKey: "companyId" },
-              { tableName: "hrm_leaverequests", foreignKey: "companyId" },
-              { tableName: "hrm_leavetypes", foreignKey: "companyId" },
-              { tableName: "hrm_projects", foreignKey: "companyId" },
-              { tableName: "hrm_timer_tracker", foreignKey: "companyId" },
-              { tableName: "hrm_roles", foreignKey: "companyId" },
-            ];
+            if (result.length === 0) {
+              return res.status(404).json({ error: "Company not found" });
+            }
 
-            // Update related entries in each related table
-            relatedTables.forEach((table) => {
-              let updateQuery;
-              if (table.tableName === "role") {
-                updateQuery = isDeleted
-                  ? `UPDATE ${table.tableName} SET status = 'Enable' WHERE ${table.foreignKey} = ?`
-                  : `UPDATE ${table.tableName} SET status = 'Disable' WHERE ${table.foreignKey} = ?`;
-              } else {
-                updateQuery = isDeleted
-                  ? `UPDATE ${table.tableName} SET deleted = false WHERE ${table.foreignKey} = ?`
-                  : `UPDATE ${table.tableName} SET deleted = true WHERE ${table.foreignKey} = ?`;
-              }
+            const isDeleted = result[0].deleted;
 
-              pool.query(updateQuery, [companyId], (err, result) => {
-                if (err) {
-                  pool.rollback(() => {
-                    console.error(`Error updating ${table.tableName}`, err);
-                    return res
-                      .status(500)
-                      .json({ error: "Internal Server Error" });
-                  });
-                }
-              });
-            });
+            // Mark the company as deleted
+            const deleteCompanyQuery = isDeleted
+              ? "UPDATE hrm_companys SET deleted = false WHERE id = ?"
+              : "UPDATE hrm_companys SET deleted = true WHERE id = ?";
 
-            // Commit transaction if all queries succeed
-            pool.commit((err) => {
+            connection.query(deleteCompanyQuery, [companyId], (err, result) => {
               if (err) {
-                pool.rollback(() => {
-                  console.error("Error committing transaction", err);
+                connection.rollback(() => {
+                  console.error("Error deleting company:", err);
                   return res
                     .status(500)
                     .json({ error: "Internal Server Error" });
                 });
               }
 
-              const message = isDeleted
-                ? "Company marked as undeleted"
-                : "Company marked as deleted";
+              // Array of related tables
+              const relatedTables = [
+                { tableName: "hrm_admins", foreignKey: "companyId" },
+                { tableName: "hrm_announcements", foreignKey: "companyId" },
+                { tableName: "hrm_awards", foreignKey: "companyId" },
+                { tableName: "hrm_calendarevents", foreignKey: "companyId" },
+                { tableName: "hrm_calendartodo", foreignKey: "companyId" },
+                { tableName: "hrm_departments", foreignKey: "companyId" },
+                { tableName: "hrm_designations", foreignKey: "companyId" },
+                { tableName: "hrm_employees", foreignKey: "companyId" },
+                { tableName: "hrm_jobs_requirement", foreignKey: "companyId" },
+                { tableName: "hrm_leaverequests", foreignKey: "companyId" },
+                { tableName: "hrm_leavetypes", foreignKey: "companyId" },
+                { tableName: "hrm_projects", foreignKey: "companyId" },
+                { tableName: "hrm_timer_tracker", foreignKey: "companyId" },
+                { tableName: "hrm_roles", foreignKey: "companyId" },
+              ];
 
-              res.status(200).json({ message });
+              // Update related entries in each related table
+              relatedTables.forEach((table) => {
+                let updateQuery;
+                if (table.tableName === "role") {
+                  updateQuery = isDeleted
+                    ? `UPDATE ${table.tableName} SET status = 'Enable' WHERE ${table.foreignKey} = ?`
+                    : `UPDATE ${table.tableName} SET status = 'Disable' WHERE ${table.foreignKey} = ?`;
+                } else {
+                  updateQuery = isDeleted
+                    ? `UPDATE ${table.tableName} SET deleted = false WHERE ${table.foreignKey} = ?`
+                    : `UPDATE ${table.tableName} SET deleted = true WHERE ${table.foreignKey} = ?`;
+                }
+
+                connection.query(updateQuery, [companyId], (err, result) => {
+                  if (err) {
+                    pool.rollback(() => {
+                      console.error(`Error updating ${table.tableName}`, err);
+                      return res
+                        .status(500)
+                        .json({ error: "Internal Server Error" });
+                    });
+                  }
+                });
+              });
+
+              // Commit transaction if all queries succeed
+              connection.commit((err) => {
+                if (err) {
+                  pool.rollback(() => {
+                    console.error("Error committing transaction", err);
+                    return res
+                      .status(500)
+                      .json({ error: "Internal Server Error" });
+                  });
+                }
+
+                const message = isDeleted
+                  ? "Company marked as undeleted"
+                  : "Company marked as deleted";
+
+                res.status(200).json({ message });
+              });
             });
           });
         });
-      });
-    } else {
-      // User is not an superAdmin, deny access
-      res.status(403).json({ error: "Access denied" });
+      } else {
+        // User is not an superAdmin, deny access
+        res.status(403).json({ error: "Access denied" });
+      }
+    } catch (error) {
+      console.error("Error Delete Company", error);
+      return res.status(500).json({ error: "Internal Server Error" });
     }
-  } catch (error) {
-    console.error("Error Delete Company", error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
+  });
 };
 
 module.exports.companyList = async (req, res) => {
