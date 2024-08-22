@@ -1,4 +1,4 @@
-const connection = require("../config/config");
+const pool = require("../config/config");
 const multer = require("multer");
 const ftp = require("basic-ftp");
 
@@ -98,7 +98,7 @@ module.exports.addCompany = async (req, res) => {
         // Insert the new company into the company table
         const insertSql = `INSERT INTO hrm_companys (companyName, companyEmail, companyPan, companyGST, subscription, startDate, endDate, companyLogo, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-        connection.query(
+        pool.query(
           insertSql,
           [
             companyName,
@@ -203,7 +203,7 @@ module.exports.updateCompany = async (req, res) => {
           ];
         }
 
-        connection.query(
+        pool.query(
           updateCompanyQuery,
           queryParams,
           async (err, result) => {
@@ -242,7 +242,7 @@ module.exports.deleteCompany = async (req, res) => {
       const companyId = req.params.id;
 
       // Begin transaction
-      connection.beginTransaction((err) => {
+      pool.beginTransaction((err) => {
         if (err) {
           console.error("Error starting transaction:", err);
           return res.status(500).json({ error: "Internal Server Error" });
@@ -251,7 +251,7 @@ module.exports.deleteCompany = async (req, res) => {
         const checkCompanyQuery =
           "SELECT deleted FROM hrm_companys WHERE id = ?";
 
-        connection.query(checkCompanyQuery, [companyId], (err, result) => {
+        pool.query(checkCompanyQuery, [companyId], (err, result) => {
           if (err) {
             console.error("Error Checking Company", err);
             return res.status(500).json({ error: "Internal Server Error" });
@@ -268,9 +268,9 @@ module.exports.deleteCompany = async (req, res) => {
             ? "UPDATE hrm_companys SET deleted = false WHERE id = ?"
             : "UPDATE hrm_companys SET deleted = true WHERE id = ?";
 
-          connection.query(deleteCompanyQuery, [companyId], (err, result) => {
+          pool.query(deleteCompanyQuery, [companyId], (err, result) => {
             if (err) {
-              connection.rollback(() => {
+              pool.rollback(() => {
                 console.error("Error deleting company:", err);
                 return res.status(500).json({ error: "Internal Server Error" });
               });
@@ -307,9 +307,9 @@ module.exports.deleteCompany = async (req, res) => {
                   : `UPDATE ${table.tableName} SET deleted = true WHERE ${table.foreignKey} = ?`;
               }
 
-              connection.query(updateQuery, [companyId], (err, result) => {
+              pool.query(updateQuery, [companyId], (err, result) => {
                 if (err) {
-                  connection.rollback(() => {
+                  pool.rollback(() => {
                     console.error(`Error updating ${table.tableName}`, err);
                     return res
                       .status(500)
@@ -320,9 +320,9 @@ module.exports.deleteCompany = async (req, res) => {
             });
 
             // Commit transaction if all queries succeed
-            connection.commit((err) => {
+            pool.commit((err) => {
               if (err) {
-                connection.rollback(() => {
+                pool.rollback(() => {
                   console.error("Error committing transaction", err);
                   return res
                     .status(500)
@@ -353,7 +353,7 @@ module.exports.companyList = async (req, res) => {
   try {
     const sql = "SELECT * FROM hrm_companys";
 
-    connection.query(sql, (err, result) => {
+    pool.query(sql, (err, result) => {
       if (err) {
         console.error("Error Fetching Company", err);
         return res.status(500).json({ error: "Internal Server Error" });
@@ -378,7 +378,7 @@ module.exports.getCompanyLogo = async (req, res) => {
 
     const sql = `SELECT companyLogo FROM hrm_companys WHERE id = ?`;
 
-    connection.query(sql, [companyId], async (err, result) => {
+    pool.query(sql, [companyId], async (err, result) => {
       if (err) {
         console.error("Error fetching company logo", err);
         return res.status(500).json({ error: "Internal Server Error" });
