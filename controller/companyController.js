@@ -312,7 +312,7 @@ module.exports.deleteCompany = async (req, res) => {
 
                 connection.query(updateQuery, [companyId], (err, result) => {
                   if (err) {
-                    pool.rollback(() => {
+                    connection.rollback(() => {
                       console.error(`Error updating ${table.tableName}`, err);
                       return res
                         .status(500)
@@ -325,7 +325,7 @@ module.exports.deleteCompany = async (req, res) => {
               // Commit transaction if all queries succeed
               connection.commit((err) => {
                 if (err) {
-                  pool.rollback(() => {
+                  connection.rollback(() => {
                     console.error("Error committing transaction", err);
                     return res
                       .status(500)
