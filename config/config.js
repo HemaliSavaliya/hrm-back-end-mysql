@@ -1,4 +1,4 @@
-// For live with the use of pool
+// new config code
 const mysql = require("mysql");
 const dotenv = require("dotenv");
 dotenv.config();
