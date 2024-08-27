@@ -212,8 +212,14 @@ module.exports.updateCompany = async (req, res) => {
           if (req.file) {
             const localFilePath = `./upload/company_logo/${req.file.filename}`;
             const remoteFilePath = `/domains/stackholic.com/public_html/HRM_Images/upload/company_logo/${req.file.filename}`;
-
-            await uploadLogoToFTP(localFilePath, remoteFilePath);
+            try {
+              await uploadLogoToFTP(localFilePath, remoteFilePath);
+            } catch (ftpError) {
+              console.error("Error uploading logo to FTP:", ftpError);
+              return res
+                .status(500)
+                .json({ error: "Error uploading logo to FTP" });
+            }
           }
 
           res
@@ -253,6 +259,7 @@ module.exports.deleteCompany = async (req, res) => {
 
           const checkCompanyQuery =
             "SELECT deleted FROM hrm_companys WHERE id = ?";
+
           connection.query(checkCompanyQuery, [companyId], (err, result) => {
             if (err) {
               console.error("Error checking company:", err);

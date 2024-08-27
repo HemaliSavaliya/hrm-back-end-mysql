@@ -1,4 +1,4 @@
-const connection = require("../config/config");
+const pool = require("../config/config");
 const bcrypt = require("bcrypt");
 
 module.exports.addAdmin = async (req, res) => {
@@ -13,7 +13,7 @@ module.exports.addAdmin = async (req, res) => {
       // Insert the new admin into the admin table
       const insertSql = `INSERT INTO hrm_admins (companyId, name, email, password, role, deleted) VALUES (?, ?, ?, ?, ?, ?)`;
 
-      connection.query(
+      pool.query(
         insertSql,
         [companyId, name, email, hashedPassword, role || "Admin", false],
         (err, result) => {
@@ -49,7 +49,7 @@ module.exports.updateAdmin = async (req, res) => {
       const updateAdminQuery =
         "UPDATE hrm_admins SET companyId = ?, name = ?, email = ? WHERE id = ?";
 
-      connection.query(
+      pool.query(
         updateAdminQuery,
         [companyId, name, email, adminId],
         (err, result) => {
@@ -81,7 +81,7 @@ module.exports.deleteAdmin = async (req, res) => {
 
       const checkAdminQuery = "SELECT deleted FROM hrm_admins WHERE id = ?";
 
-      connection.query(checkAdminQuery, [adminId], (err, result) => {
+      pool.query(checkAdminQuery, [adminId], (err, result) => {
         if (err) {
           console.error("Error Checking Admin", err);
           return res.status(500).json({ error: "Internal Server Error" });
@@ -98,7 +98,7 @@ module.exports.deleteAdmin = async (req, res) => {
           ? "UPDATE hrm_admins SET deleted = false WHERE id = ?"
           : "UPDATE hrm_admins SET deleted = true WHERE id = ?";
 
-        connection.query(toggleAdminQuery, [adminId], (err, result) => {
+        pool.query(toggleAdminQuery, [adminId], (err, result) => {
           if (err) {
             console.error("Error Toggling Admin Status", err);
             return res.status(500).json({ error: "Internal Server Error" });
@@ -108,7 +108,7 @@ module.exports.deleteAdmin = async (req, res) => {
             ? "Admin marked as undeleted"
             : "Admin marked as deleted";
 
-          res.status(200).json({ message });
+          res.status(200).json({ success: true, message });
         });
       });
     } else {
@@ -121,12 +121,43 @@ module.exports.deleteAdmin = async (req, res) => {
   }
 };
 
+// module.exports.adminList = async (req, res) => {
+//   try {
+//     const sql =
+//       "SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id";
+
+//     pool.query(sql, (err, result) => {
+//       if (err) {
+//         console.error("Error Fetching Admin List", err);
+//         return res.status(500).json({ error: "Internal Server Error" });
+//       }
+
+//       if (result.length > 0) {
+//         res.status(200).json(result);
+//       } else {
+//         res.status(404).json({ error: "No Admin Found!" });
+//       }
+//     });
+//   } catch (error) {
+//     console.error("Error Fetching Admin List", error);
+//     return res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
+
 module.exports.adminList = async (req, res) => {
   try {
-    const sql =
-      "SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id";
+    const page = parseInt(req.query.page, 2) || 1;
+    const pageSize = parseInt(req.query.pageSize, 2) || 2;
+    const offset = (page - 1) * pageSize;
 
-    connection.query(sql, (err, result) => {
+    const sql = `
+      SELECT a.*, c.companyName AS companyName
+      FROM hrm_admins a
+      LEFT JOIN hrm_companys c ON a.companyId = c.id
+      LIMIT ? OFFSET ?
+    `;
+
+    pool.query(sql, [pageSize, offset], (err, result) => {
       if (err) {
         console.error("Error Fetching Admin List", err);
         return res.status(500).json({ error: "Internal Server Error" });
