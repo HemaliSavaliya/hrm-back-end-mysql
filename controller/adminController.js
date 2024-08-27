@@ -121,60 +121,79 @@ module.exports.deleteAdmin = async (req, res) => {
   }
 };
 
-// module.exports.adminList = async (req, res) => {
-//   try {
-//     const sql =
-//       "SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id";
-
-//     pool.query(sql, (err, result) => {
-//       if (err) {
-//         console.error("Error Fetching Admin List", err);
-//         return res.status(500).json({ error: "Internal Server Error" });
-//       }
-
-//       if (result.length > 0) {
-//         res.status(200).json(result);
-//       } else {
-//         res.status(404).json({ error: "No Admin Found!" });
-//       }
-//     });
-//   } catch (error) {
-//     console.error("Error Fetching Admin List", error);
-//     return res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
-
 module.exports.adminList = async (req, res) => {
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 5;
-  const skip = (page - 1) * limit;
-
   try {
-    // Fetch total items count
-    const countQuery = `SELECT COUNT(*) AS totalItems FROM hrm_admins`;
-    const [countResult] = await pool.query(countQuery);
-    const totalItems = countResult[0]?.totalItems || 0;
-    const totalPages = Math.ceil(totalItems / limit);
+    const sql =
+      "SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id";
 
-    // Fetch paginated data
-    const dataQuery = `
-      SELECT a.*, c.companyName AS companyName
-      FROM hrm_admins a
-      LEFT JOIN hrm_companys c ON a.companyId = c.id
-      LIMIT ? OFFSET ?
-    `;
-    const [dataResult] = await pool.query(dataQuery, [limit, skip]);
+    pool.query(sql, (err, result) => {
+      if (err) {
+        console.error("Error Fetching Admin List", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
 
-    res.status(200).json({
-      data: dataResult || [], // Ensure dataResult is an array
-      totalItems,
-      totalPages,
-      currentPage: page,
-      isNext: page < totalPages,
-      total: dataResult.length,
+      if (result.length > 0) {
+        res.status(200).json(result);
+      } else {
+        res.status(404).json({ error: "No Admin Found!" });
+      }
     });
   } catch (error) {
     console.error("Error Fetching Admin List", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+// module.exports.adminList = async (req, res) => {
+//   const page = req.query.page;
+//   const limit = Number(req.query.limit);
+//   const isPaginationRequired = Boolean(page && limit);
+//   const skip = (Number(page) - 1) * Number(limit);
+
+//   const sql = `SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id LIMIT ?, ?`;
+//   const params = [skip, limit];
+
+//   const getTotalItems = async () => {
+//     const sql = `SELECT COUNT(*) AS totalItems FROM hrm_admins`;
+//     return new Promise((resolve, reject) => {
+//       pool.query(sql, (err, result) => {
+//         if (err) {
+//           console.error("Error fetching total items:", err);
+//           return reject(err);
+//         }
+//         if (result.length === 0) {
+//           return resolve({ totalItems: 0 });
+//         }
+//         resolve(result[0]);
+//       });
+//     });
+//   };
+
+//   pool.query(sql, params, async (err, result) => {
+//     if (err) {
+//       console.error("Error Fetching Admin List", err);
+//       return res.status(500).json({ error: "Internal Server Error" });
+//     }
+
+//     if (result.length > 0) {
+//       try {
+//         const totalItemsResult = await getTotalItems();
+//         const totalItems = totalItemsResult.totalItems;
+//         const totalPages = Math.ceil(totalItems / Number(limit)) || 1;
+//         res.status(200).json({
+//           data: result,
+//           totalItems,
+//           totalPages,
+//           currentPage: page,
+//           isNext: Number(page) < Number(totalPages),
+//           total: result.length,
+//         });
+//       } catch (error) {
+//         console.error("Error fetching total items:", error);
+//         res.status(500).json({ error: "Internal Server Error" });
+//       }
+//     } else {
+//       res.status(404).json({ error: "No Admin Found!" });
+//     }
+//   });
+// };
