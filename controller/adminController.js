@@ -154,9 +154,17 @@ module.exports.adminList = async (req, res) => {
   const params = [skip, limit];
 
   const getTotalItems = async () => {
-    const sql = `SELECT COUNT(*) AS totalItems FROM hrm_admins`;
-    const result = await pool.query(sql);
-    return result[0].totalItems;
+    try {
+      const sql = `SELECT COUNT(*) AS totalItems FROM hrm_admins`;
+      const [result] = await pool.query(sql);
+      if (result.length === 0) {
+        throw new Error("No results returned");
+      }
+      return result[0].totalItems;
+    } catch (error) {
+      console.error("Error fetching total items:", error);
+      throw error;
+    }
   };
 
   pool.query(sql, params, async (err, result) => {
