@@ -121,43 +121,12 @@ module.exports.deleteAdmin = async (req, res) => {
   }
 };
 
-// module.exports.adminList = async (req, res) => {
-//   try {
-//     const sql =
-//       "SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id";
-
-//     pool.query(sql, (err, result) => {
-//       if (err) {
-//         console.error("Error Fetching Admin List", err);
-//         return res.status(500).json({ error: "Internal Server Error" });
-//       }
-
-//       if (result.length > 0) {
-//         res.status(200).json(result);
-//       } else {
-//         res.status(404).json({ error: "No Admin Found!" });
-//       }
-//     });
-//   } catch (error) {
-//     console.error("Error Fetching Admin List", error);
-//     return res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
-
 module.exports.adminList = async (req, res) => {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
-    const pageSize = parseInt(req.query.pageSize, 10) || 10;
-    const offset = (page - 1) * pageSize;
+    const sql =
+      "SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id";
 
-    const sql = `
-      SELECT a.*, c.companyName AS companyName
-      FROM hrm_admins a
-      LEFT JOIN hrm_companys c ON a.companyId = c.id
-      LIMIT ? OFFSET ?
-    `;
-
-    pool.query(sql, [pageSize, offset], (err, result) => {
+    pool.query(sql, (err, result) => {
       if (err) {
         console.error("Error Fetching Admin List", err);
         return res.status(500).json({ error: "Internal Server Error" });
@@ -174,3 +143,51 @@ module.exports.adminList = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+// module.exports.adminList = async (req, res) => {
+//   try {
+//     const page = parseInt(req.query.page, 10) || 1;
+//     const pageSize = parseInt(req.query.pageSize, 10) || 10;
+//     const offset = (page - 1) * pageSize;
+
+//     // Query to get total count of records
+//     const countQuery = 'SELECT COUNT(*) as total FROM hrm_admins';
+//     const countResult = await new Promise((resolve, reject) => {
+//       pool.query(countQuery, (err, result) => {
+//         if (err) {
+//           console.error('Error Fetching Admin Count', err);
+//           reject(err);
+//         } else {
+//           resolve(result[0].total);
+//         }
+//       });
+//     });
+
+//     // Query to get paginated data
+//     const sql = `
+//       SELECT a.*, c.companyName AS companyName
+//       FROM hrm_admins a
+//       LEFT JOIN hrm_companys c ON a.companyId = c.id
+//       LIMIT ? OFFSET ?
+//     `;
+//     const dataResult = await new Promise((resolve, reject) => {
+//       pool.query(sql, [pageSize, offset], (err, result) => {
+//         if (err) {
+//           console.error('Error Fetching Admin List', err);
+//           reject(err);
+//         } else {
+//           resolve(result);
+//         }
+//       });
+//     });
+
+//     // Send response with data and total count
+//     res.status(200).json({
+//       data: dataResult,
+//       total: countResult
+//     });
+//   } catch (error) {
+//     console.error('Error Fetching Admin List', error);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// };
