@@ -146,8 +146,8 @@ module.exports.deleteAdmin = async (req, res) => {
 
 module.exports.adminList = async (req, res) => {
   try {
-    const page = parseInt(req.query.page, 2) || 1;
-    const pageSize = parseInt(req.query.pageSize, 2) || 2;
+    const page = parseInt(req.query.page, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize, 10) || 10;
     const offset = (page - 1) * pageSize;
 
     const sql = `
