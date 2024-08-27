@@ -154,17 +154,19 @@ module.exports.adminList = async (req, res) => {
   const params = [skip, limit];
 
   const getTotalItems = async () => {
-    try {
-      const sql = `SELECT COUNT(*) AS totalItems FROM hrm_admins`;
-      const [result] = await pool.query(sql);
-      if (result.length === 0) {
-        throw new Error("No results returned");
-      }
-      return result[0].totalItems;
-    } catch (error) {
-      console.error("Error fetching total items:", error);
-      throw error;
-    }
+    const sql = `SELECT COUNT(*) AS totalItems FROM hrm_admins`;
+    return new Promise((resolve, reject) => {
+      pool.query(sql, (err, result) => {
+        if (err) {
+          console.error("Error fetching total items:", err);
+          return reject(err);
+        }
+        if (result.length === 0) {
+          return resolve({ totalItems: 0 });
+        }
+        resolve(result[0]);
+      });
+    });
   };
 
   pool.query(sql, params, async (err, result) => {
@@ -174,16 +176,22 @@ module.exports.adminList = async (req, res) => {
     }
 
     if (result.length > 0) {
-      const totalItems = await getTotalItems();
-      const totalPages = Math.ceil(totalItems / Number(limit)) || 1;
-      res.status(200).json({
-        data: result,
-        totalItems,
-        totalPages,
-        currentPage: page,
-        isNext: Number(page) < Number(totalPages),
-        total: result.length,
-      });
+      try {
+        const totalItemsResult = await getTotalItems();
+        const totalItems = totalItemsResult.totalItems;
+        const totalPages = Math.ceil(totalItems / Number(limit)) || 1;
+        res.status(200).json({
+          data: result,
+          totalItems,
+          totalPages,
+          currentPage: page,
+          isNext: Number(page) < Number(totalPages),
+          total: result.length,
+        });
+      } catch (error) {
+        console.error("Error fetching total items:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
     } else {
       res.status(404).json({ error: "No Admin Found!" });
     }
