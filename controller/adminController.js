@@ -152,8 +152,8 @@ module.exports.adminList = async (req, res) => {
   try {
     // Fetch total items count
     const countQuery = `SELECT COUNT(*) AS totalItems FROM hrm_admins`;
-    const countResult = await pool.query(countQuery);
-    const totalItems = countResult[0][0].totalItems; // Adjusting for MySQL result format
+    const [countResult] = await pool.query(countQuery);
+    const totalItems = countResult[0]?.totalItems || 0;
     const totalPages = Math.ceil(totalItems / limit);
 
     // Fetch paginated data
@@ -163,15 +163,15 @@ module.exports.adminList = async (req, res) => {
       LEFT JOIN hrm_companys c ON a.companyId = c.id
       LIMIT ? OFFSET ?
     `;
-    const dataResult = await pool.query(dataQuery, [limit, skip]);
+    const [dataResult] = await pool.query(dataQuery, [limit, skip]);
 
     res.status(200).json({
-      data: dataResult[0], // Adjusting for MySQL result format
+      data: dataResult || [], // Ensure dataResult is an array
       totalItems,
       totalPages,
       currentPage: page,
       isNext: page < totalPages,
-      total: dataResult[0].length,
+      total: dataResult.length,
     });
   } catch (error) {
     console.error("Error Fetching Admin List", error);
