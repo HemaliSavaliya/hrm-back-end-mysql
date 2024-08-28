@@ -155,7 +155,7 @@ module.exports.adminList = async (req, res) => {
     console.log("Count Result:", countQuery);
     const countResult = await pool.query(countQuery);
     console.log("Result:", countResult);
-    const totalItems = countResult || 0; // Safeguard with optional chaining and default value
+    const totalItems = countResult[0]?.count || 0; // Safeguard with optional chaining and default value
     console.log("item Result:", totalItems);
     const totalPages = Math.ceil(totalItems / limit);
     console.log("pages Result:", totalPages);
