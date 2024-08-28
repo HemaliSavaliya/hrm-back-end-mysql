@@ -152,39 +152,36 @@ module.exports.adminList = async (req, res) => {
 
     // Count total items
     const countQuery = "SELECT COUNT(*) AS count FROM hrm_admins";
-    console.log("Count Result:", countQuery);
-    pool.query(countQuery, function (err, result) {
+    pool.query(countQuery, (err, countResult) => {
       if (err) throw err;
-      console.log(result);
-    });
-    // const countResult = await pool.query(countQuery);
-    // console.log("Result:", countResult);
-    // const totalItems = countResult[0]?.count || 0; // Safeguard with optional chaining and default value
-    // console.log("item Result:", totalItems);
-    // const totalPages = Math.ceil(totalItems / limit);
-    // console.log("pages Result:", totalPages);
+      const totalItems = countResult[0].count || 0;
+      console.log("count", totalItems);
 
-    // Fetch paginated data
-    const sql = `
-      SELECT a.*, c.companyName AS companyName 
-      FROM hrm_admins a 
-      LEFT JOIN hrm_companys c ON a.companyId = c.id 
-      LIMIT ? OFFSET ?
-    `;
+      const totalPages = Math.ceil(totalItems / limit);
+      console.log("count", totalPages);
 
-    pool.query(sql, [limit, skip], (err, result) => {
-      if (err) {
-        console.error("Error Fetching Admin List", err);
-        return res.status(500).json({ error: "Internal Server Error" });
-      }
+      // Fetch paginated data
+      const sql = `
+        SELECT a.*, c.companyName AS companyName 
+        FROM hrm_admins a 
+        LEFT JOIN hrm_companys c ON a.companyId = c.id 
+        LIMIT ? OFFSET ?
+      `;
 
-      res.status(200).json({
-        data: result,
-        totalItems,
-        totalPages,
-        currentPage: page,
-        isNext: page < totalPages,
-        total: result.length,
+      pool.query(sql, [limit, skip], (err, result) => {
+        if (err) {
+          console.error("Error Fetching Admin List", err);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        res.status(200).json({
+          data: result,
+          totalItems,
+          totalPages,
+          currentPage: page,
+          isNext: page < totalPages,
+          total: result.length,
+        });
       });
     });
   } catch (error) {
