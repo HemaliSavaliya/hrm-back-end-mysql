@@ -121,22 +121,62 @@ module.exports.deleteAdmin = async (req, res) => {
   }
 };
 
+// module.exports.adminList = async (req, res) => {
+//   try {
+//     const sql =
+//       "SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id";
+
+//     pool.query(sql, (err, result) => {
+//       if (err) {
+//         console.error("Error Fetching Admin List", err);
+//         return res.status(500).json({ error: "Internal Server Error" });
+//       }
+
+//       if (result.length > 0) {
+//         res.status(200).json(result);
+//       } else {
+//         res.status(404).json({ error: "No Admin Found!" });
+//       }
+//     });
+//   } catch (error) {
+//     console.error("Error Fetching Admin List", error);
+//     return res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
+
 module.exports.adminList = async (req, res) => {
   try {
-    const sql =
-      "SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id";
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
 
-    pool.query(sql, (err, result) => {
+    // Count total items
+    const countQuery = `SELECT COUNT(*) AS count FROM hrm_admins`;
+    const [totalItems] = await pool.query(countQuery);
+    const totalPages = Math.ceil(totalItems[0].count / limit);
+
+    // Fetch paginated data
+    const sql = `
+      SELECT a.*, c.companyName AS companyName 
+      FROM hrm_admins a 
+      LEFT JOIN hrm_companys c ON a.companyId = c.id 
+      LIMIT ? OFFSET ?
+    `;
+
+    pool.query(sql, [limit, skip], (err, result) => {
       if (err) {
         console.error("Error Fetching Admin List", err);
         return res.status(500).json({ error: "Internal Server Error" });
       }
 
-      if (result.length > 0) {
-        res.status(200).json(result);
-      } else {
-        res.status(404).json({ error: "No Admin Found!" });
-      }
+      res.status(200).json({
+        data: result,
+        totalItems: totalItems[0].count,
+        totalPages,
+        currentPage: page,
+        isNext: page < totalPages,
+        total: result.length,
+      });
     });
   } catch (error) {
     console.error("Error Fetching Admin List", error);
