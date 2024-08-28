@@ -152,8 +152,9 @@ module.exports.adminList = async (req, res) => {
 
     // Count total items
     const countQuery = `SELECT COUNT(*) AS count FROM hrm_admins`;
-    const [totalItems] = await pool.query(countQuery);
-    const totalPages = Math.ceil(totalItems[0].count / limit);
+    const countResult = await pool.query(countQuery);
+    const totalItems = countResult[0].count;
+    const totalPages = Math.ceil(totalItems / limit);
 
     // Fetch paginated data
     const sql = `
@@ -171,7 +172,7 @@ module.exports.adminList = async (req, res) => {
 
       res.status(200).json({
         data: result,
-        totalItems: totalItems[0].count,
+        totalItems,
         totalPages,
         currentPage: page,
         isNext: page < totalPages,
