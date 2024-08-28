@@ -152,10 +152,10 @@ module.exports.adminList = async (req, res) => {
 
     // Count total items
     const countQuery = "SELECT COUNT(*) AS count FROM hrm_admins";
+    console.log("Count Result:", countQuery);
     const countResult = await pool.query(countQuery);
     const totalItems = countResult[0]?.count || 0; // Safeguard with optional chaining and default value
     const totalPages = Math.ceil(totalItems / limit);
-    console.log("Count Result:", countResult);
 
     // Fetch paginated data
     const sql = `
