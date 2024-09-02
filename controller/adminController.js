@@ -155,10 +155,7 @@ module.exports.adminList = async (req, res) => {
     pool.query(countQuery, (err, countResult) => {
       if (err) throw err;
       const totalItems = countResult[0].count || 0;
-      console.log("count", totalItems);
-
       const totalPages = Math.ceil(totalItems / limit);
-      console.log("count", totalPages);
 
       // Fetch paginated data
       const sql = `

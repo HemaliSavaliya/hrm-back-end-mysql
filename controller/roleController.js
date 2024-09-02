@@ -89,25 +89,77 @@ module.exports.updateRoleStatus = async (req, res) => {
   }
 };
 
+// module.exports.roleList = async (req, res) => {
+//   try {
+//     // Fetch all role from the database
+//     const getAllRole = "SELECT * FROM hrm_roles WHERE companyId = ?";
+
+//     connection.query(getAllRole, [req.user.companyId], (err, result) => {
+//       if (err) {
+//         console.error("Error fetching role", err);
+//         return res.status(500).json({ error: "Internal Server Error" });
+//       }
+
+//       if (result.length > 0) {
+//         res.status(200).json(result);
+//       } else {
+//         return res.status(404).json({ error: "No role found!" });
+//       }
+//     });
+//   } catch (error) {
+//     console.error("Error Fetching role list:", error);
+//     return res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
+
 module.exports.roleList = async (req, res) => {
   try {
-    // Fetch all role from the database
-    const getAllRole = "SELECT * FROM hrm_roles WHERE companyId = ?";
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const companyId = req.query.companyId;
 
-    connection.query(getAllRole, [req.user.companyId], (err, result) => {
+    if (!companyId) {
+      return res.status(400).json({ error: "Company ID is required" });
+    }
+
+    const offset = (page - 1) * limit;
+
+    // Count total items
+    const countQuery =
+      "SELECT COUNT(*) AS count FROM hrm_roles WHERE companyId = ?";
+    connection.query(countQuery, [companyId], (err, countResult) => {
       if (err) {
-        console.error("Error fetching role", err);
+        console.error("Error counting roles:", err);
         return res.status(500).json({ error: "Internal Server Error" });
       }
 
-      if (result.length > 0) {
-        res.status(200).json(result);
-      } else {
-        return res.status(404).json({ error: "No role found!" });
-      }
+      const totalItems = countResult[0].count || 0;
+      const totalPages = Math.ceil(totalItems / limit);
+
+      // Fetch paginated data
+      const dataQuery =
+        "SELECT * FROM hrm_roles WHERE companyId = ? LIMIT ? OFFSET ?";
+      connection.query(
+        dataQuery,
+        [companyId, limit, offset],
+        (err, dataResult) => {
+          if (err) {
+            console.error("Error fetching roles:", err);
+            return res.status(500).json({ error: "Internal Server Error" });
+          }
+
+          res.status(200).json({
+            data: dataResult,
+            totalItems,
+            totalPages,
+            currentPage: page,
+            isNext: page < totalPages,
+          });
+        }
+      );
     });
   } catch (error) {
-    console.error("Error Fetching role list:", error);
+    console.error("Error fetching role list:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
