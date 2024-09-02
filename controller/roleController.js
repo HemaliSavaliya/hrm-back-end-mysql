@@ -119,26 +119,21 @@ module.exports.roleList = async (req, res) => {
     const companyId = req.query.companyId;
     const search = req.query.search || "";
     const sortBy = req.query.sortBy || "roleName";
-    const sortOrder = req.query.sortOrder || "asc";
+    const sortOrder = req.query.sortOrder === "desc" ? "desc" : "asc";
 
     if (!companyId) {
       return res.status(400).json({ error: "Company ID is required" });
     }
 
-    const validSortByValues = ["roleName", "createdAt", "updatedAt"]; // add more columns as needed
-    const validSortOrderValues = ["asc", "desc"];
-
-    if (!validSortByValues.includes(sortBy)) {
-      return res.status(400).json({ error: `Invalid sortBy value: ${sortBy}` });
-    }
-
-    if (!validSortOrderValues.includes(sortOrder)) {
-      return res
-        .status(400)
-        .json({ error: `Invalid sortOrder value: ${sortOrder}` });
-    }
-
     const offset = (page - 1) * limit;
+
+    // Whitelist columns that can be sorted
+    const validSortColumns = ["roleName", "date", "status"]; // Add other columns as needed
+    if (!validSortColumns.includes(sortBy)) {
+      return res.status(400).json({ error: "Invalid sort column" });
+    }
+
+    console.log("Sort By:", sortBy, "Sort Order:", sortOrder); // Debugging log
 
     // Count total items with filtering
     const countQuery = `
@@ -160,15 +155,15 @@ module.exports.roleList = async (req, res) => {
 
         // Fetch paginated data with sorting and filtering
         const dataQuery = `
-          SELECT * 
-          FROM hrm_roles 
-          WHERE companyId = ? AND roleName LIKE ? 
-          ORDER BY ?? ? 
-          LIMIT ? OFFSET ?
-        `;
+        SELECT * 
+        FROM hrm_roles 
+        WHERE companyId = ? AND roleName LIKE ? 
+        ORDER BY ${sortBy} ${sortOrder} 
+        LIMIT ? OFFSET ?
+      `;
         connection.query(
           dataQuery,
-          [companyId, `%${search}%`, sortBy, sortOrder, limit, offset],
+          [companyId, `%${search}%`, limit, offset],
           (err, dataResult) => {
             if (err) {
               console.error("Error fetching roles:", err);
