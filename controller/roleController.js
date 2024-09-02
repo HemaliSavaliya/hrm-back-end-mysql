@@ -116,7 +116,7 @@ module.exports.roleList = async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 5;
-    const companyId = req.user.companyId;
+    const companyId = req.query.companyId;
 
     if (!companyId) {
       return res.status(400).json({ error: "Company ID is required" });
