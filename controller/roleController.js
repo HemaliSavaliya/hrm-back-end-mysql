@@ -125,6 +125,19 @@ module.exports.roleList = async (req, res) => {
       return res.status(400).json({ error: "Company ID is required" });
     }
 
+    const validSortByValues = ["roleName", "createdAt", "updatedAt"]; // add more columns as needed
+    const validSortOrderValues = ["asc", "desc"];
+
+    if (!validSortByValues.includes(sortBy)) {
+      return res.status(400).json({ error: `Invalid sortBy value: ${sortBy}` });
+    }
+
+    if (!validSortOrderValues.includes(sortOrder)) {
+      return res
+        .status(400)
+        .json({ error: `Invalid sortOrder value: ${sortOrder}` });
+    }
+
     const offset = (page - 1) * limit;
 
     // Count total items with filtering
@@ -147,15 +160,15 @@ module.exports.roleList = async (req, res) => {
 
         // Fetch paginated data with sorting and filtering
         const dataQuery = `
-        SELECT * 
-        FROM hrm_roles 
-        WHERE companyId = ? AND roleName LIKE ? 
-        ORDER BY ${sortBy} ${sortOrder} 
-        LIMIT ? OFFSET ?
-      `;
+          SELECT * 
+          FROM hrm_roles 
+          WHERE companyId = ? AND roleName LIKE ? 
+          ORDER BY ?? ? 
+          LIMIT ? OFFSET ?
+        `;
         connection.query(
           dataQuery,
-          [companyId, `%${search}%`, limit, offset],
+          [companyId, `%${search}%`, sortBy, sortOrder, limit, offset],
           (err, dataResult) => {
             if (err) {
               console.error("Error fetching roles:", err);
