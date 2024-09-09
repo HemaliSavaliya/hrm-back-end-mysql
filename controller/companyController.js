@@ -421,7 +421,7 @@ module.exports.companyList = async (req, res) => {
     }
 
     // count total items with filtering
-    const countQuery = `SELECT COUNT(*) AS count FORM hrm_companys WHERE companyName LIKE ?`;
+    const countQuery = `SELECT COUNT(*) AS count FROM hrm_companys WHERE companyName LIKE ?`;
 
     pool.query(countQuery, [`%${search}%`], (err, countResult) => {
       if (err) {
@@ -433,7 +433,7 @@ module.exports.companyList = async (req, res) => {
       const totalPages = Math.ceil(totalPages / limit);
 
       // Fetch paginated data with sorting and filtering
-      const dataQuery = `SELECT * FORM hrm_companys WHERE companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
+      const dataQuery = `SELECT * FROM hrm_companys WHERE companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
 
       pool.query(
         dataQuery,
