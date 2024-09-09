@@ -430,7 +430,7 @@ module.exports.companyList = async (req, res) => {
       }
 
       const totalItems = countResult[0].count || 0;
-      const totalPages = Math.ceil(totalPages / limit);
+      const totalPages = Math.ceil(totalItems / limit);
 
       // Fetch paginated data with sorting and filtering
       const dataQuery = `SELECT * FROM hrm_companys WHERE companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
