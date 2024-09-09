@@ -133,8 +133,6 @@ module.exports.roleList = async (req, res) => {
       return res.status(400).json({ error: "Invalid sort column" });
     }
 
-    console.log("Sort By:", sortBy, "Sort Order:", sortOrder); // Debugging log
-
     // Count total items with filtering
     const countQuery = `
       SELECT COUNT(*) AS count 
