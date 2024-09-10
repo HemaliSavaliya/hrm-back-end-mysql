@@ -121,39 +121,33 @@ module.exports.deleteAdmin = async (req, res) => {
   }
 };
 
-// module.exports.adminList = async (req, res) => {
-//   try {
-//     const sql =
-//       "SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id";
-
-//     pool.query(sql, (err, result) => {
-//       if (err) {
-//         console.error("Error Fetching Admin List", err);
-//         return res.status(500).json({ error: "Internal Server Error" });
-//       }
-
-//       if (result.length > 0) {
-//         res.status(200).json(result);
-//       } else {
-//         res.status(404).json({ error: "No Admin Found!" });
-//       }
-//     });
-//   } catch (error) {
-//     console.error("Error Fetching Admin List", error);
-//     return res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
-
-module.exports.adminList = async (req, res) => {
+module.exports.adminListActive = async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 5;
-    const skip = (page - 1) * limit;
+    const search = req.query.search || "";
+    const sortBy = req.query.sortBy || "name";
+    const sortOrder = req.query.sortOrder === "desc" ? "desc" : "asc";
 
-    // Count total items
-    const countQuery = "SELECT COUNT(*) AS count FROM hrm_admins";
-    pool.query(countQuery, (err, countResult) => {
-      if (err) throw err;
+    const offset = (page - 1) * limit;
+
+    // whitelist columns that can be sorted
+    const validSortColumns = ["name", "email", "password", "role"];
+
+    if (!validSortColumns.includes(sortBy)) {
+      return res.status(400).json({ error: "Invalid sort column" });
+    }
+
+    // Count total active items with filtering
+    const countQuery =
+      "SELECT COUNT(*) AS count FROM hrm_admins WHERE name LIKE ? AND deleted = false";
+
+    pool.query(countQuery, [`%${search}%`], (err, countResult) => {
+      if (err) {
+        console.error("Error counting active admin", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
       const totalItems = countResult[0].count || 0;
       const totalPages = Math.ceil(totalItems / limit);
 
@@ -161,13 +155,12 @@ module.exports.adminList = async (req, res) => {
       const sql = `
         SELECT a.*, c.companyName AS companyName 
         FROM hrm_admins a 
-        LEFT JOIN hrm_companys c ON a.companyId = c.id 
-        LIMIT ? OFFSET ?
+        LEFT JOIN hrm_companys c ON a.companyId = c.id WHERE deleted = false AND name LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?
       `;
 
-      pool.query(sql, [limit, skip], (err, result) => {
+      pool.query(sql, [`%${search}%`, limit, offset], (err, result) => {
         if (err) {
-          console.error("Error Fetching Admin List", err);
+          console.error("Error Fetching active admin", err);
           return res.status(500).json({ error: "Internal Server Error" });
         }
 
@@ -177,66 +170,69 @@ module.exports.adminList = async (req, res) => {
           totalPages,
           currentPage: page,
           isNext: page < totalPages,
-          total: result.length,
         });
       });
     });
   } catch (error) {
-    console.error("Error Fetching Admin List", error);
+    console.error("Error Fetching active admin list", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-// module.exports.adminList = async (req, res) => {
-//   const page = req.query.page;
-//   const limit = Number(req.query.limit);
-//   const isPaginationRequired = Boolean(page && limit);
-//   const skip = (Number(page) - 1) * Number(limit);
+module.exports.adminListInactive = async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const search = req.query.search || "";
+    const sortBy = req.query.sortBy || "name";
+    const sortOrder = req.query.sortOrder === "desc" ? "desc" : "asc";
 
-//   const sql = `SELECT a.*, c.companyName AS companyId FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id LIMIT ?, ?`;
-//   const params = [skip, limit];
+    const offset = (page - 1) * limit;
 
-//   const getTotalItems = async () => {
-//     const sql = `SELECT COUNT(*) AS totalItems FROM hrm_admins`;
-//     return new Promise((resolve, reject) => {
-//       pool.query(sql, (err, result) => {
-//         if (err) {
-//           console.error("Error fetching total items:", err);
-//           return reject(err);
-//         }
-//         if (result.length === 0) {
-//           return resolve({ totalItems: 0 });
-//         }
-//         resolve(result[0]);
-//       });
-//     });
-//   };
+    // whitelist columns that can be sorted
+    const validSortColumns = ["name", "email", "password", "role"];
 
-//   pool.query(sql, params, async (err, result) => {
-//     if (err) {
-//       console.error("Error Fetching Admin List", err);
-//       return res.status(500).json({ error: "Internal Server Error" });
-//     }
+    if (!validSortColumns.includes(sortBy)) {
+      return res.status(400).json({ error: "Invalid sort column" });
+    }
 
-//     if (result.length > 0) {
-//       try {
-//         const totalItemsResult = await getTotalItems();
-//         const totalItems = totalItemsResult.totalItems;
-//         const totalPages = Math.ceil(totalItems / Number(limit)) || 1;
-//         res.status(200).json({
-//           data: result,
-//           totalItems,
-//           totalPages,
-//           currentPage: page,
-//           isNext: Number(page) < Number(totalPages),
-//           total: result.length,
-//         });
-//       } catch (error) {
-//         console.error("Error fetching total items:", error);
-//         res.status(500).json({ error: "Internal Server Error" });
-//       }
-//     } else {
-//       res.status(404).json({ error: "No Admin Found!" });
-//     }
-//   });
-// };
+    // Count total inactive items with filtering
+    const countQuery =
+      "SELECT COUNT(*) AS count FROM hrm_admins WHERE name LIKE ? AND deleted = true";
+
+    pool.query(countQuery, [`%${search}%`], (err, countResult) => {
+      if (err) {
+        console.error("Error counting inactive admin", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      const totalItems = countResult[0].count || 0;
+      const totalPages = Math.ceil(totalItems / limit);
+
+      // Fetch paginated data
+      const sql = `
+        SELECT a.*, c.companyName AS companyName 
+        FROM hrm_admins a 
+        LEFT JOIN hrm_companys c ON a.companyId = c.id WHERE deleted = true AND name LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?
+      `;
+
+      pool.query(sql, [`%${search}%`, limit, offset], (err, result) => {
+        if (err) {
+          console.error("Error Fetching inactive admin", err);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        res.status(200).json({
+          data: result,
+          totalItems,
+          totalPages,
+          currentPage: page,
+          isNext: page < totalPages,
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Error Fetching inactive admin list", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
