@@ -411,7 +411,7 @@ module.exports.companyList = async (req, res) => {
       const totalPages = Math.ceil(totalItems / limit);
 
       // Fetch paginated data with sorting and filtering
-      const dataQuery = `SELECT * FROM hrm_companys WHERE deleted=true AND companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
+      const dataQuery = `SELECT * FROM hrm_companys WHERE deleted=false AND companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
 
       pool.query(
         dataQuery,
