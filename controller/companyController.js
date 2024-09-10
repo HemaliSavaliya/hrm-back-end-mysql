@@ -373,7 +373,7 @@ module.exports.deleteCompany = async (req, res) => {
   });
 };
 
-module.exports.companyList = async (req, res) => {
+module.exports.companyListActive = async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 5;
@@ -398,19 +398,19 @@ module.exports.companyList = async (req, res) => {
       return res.status(400).json({ error: "Invalid sort column" });
     }
 
-    // count total items with filtering
-    const countQuery = `SELECT COUNT(*) AS count FROM hrm_companys WHERE companyName LIKE ?`;
+    // count total active items with filtering
+    const countQuery = `SELECT COUNT(*) AS count FROM hrm_companys WHERE companyName LIKE ? AND deleted = false`;
 
     pool.query(countQuery, [`%${search}%`], (err, countResult) => {
       if (err) {
-        console.error("Error counting company:", err);
+        console.error("Error counting active company:", err);
         return res.status(500).json({ error: "Internal Server Error" });
       }
 
       const totalItems = countResult[0].count || 0;
       const totalPages = Math.ceil(totalItems / limit);
 
-      // Fetch paginated data with sorting and filtering
+      // Fetch active companies with sorting and filtering
       const dataQuery = `SELECT * FROM hrm_companys WHERE deleted=false AND companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
 
       pool.query(
@@ -418,7 +418,7 @@ module.exports.companyList = async (req, res) => {
         [`%${search}%`, limit, offset],
         (err, dataResult) => {
           if (err) {
-            console.error("Error fetching company:", err);
+            console.error("Error fetching active company:", err);
             return res.status(500).json({ error: "Internal Server Error" });
           }
 
@@ -433,7 +433,72 @@ module.exports.companyList = async (req, res) => {
       );
     });
   } catch (error) {
-    console.error("Error fetching Company list:", error);
+    console.error("Error fetching active Company list:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+module.exports.companyListInactive = async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const search = req.query.search || "";
+    const sortBy = req.query.sortBy || "companyName";
+    const sortOrder = req.query.sortOrder === "desc" ? "desc" : "asc";
+
+    const offset = (page - 1) * limit;
+
+    // whitelist columns that can be sorted
+    const validSortColumns = [
+      "companyName",
+      "companyEmail",
+      "companyPan",
+      "companyGST",
+      "subscription",
+      "startDate",
+      "endDate",
+    ];
+
+    if (!validSortColumns.includes(sortBy)) {
+      return res.status(400).json({ error: "Invalid sort column" });
+    }
+
+    // count total inactive items with filtering
+    const countQuery = `SELECT COUNT(*) AS count FROM hrm_companys WHERE companyName LIKE ? AND deleted = true`;
+
+    pool.query(countQuery, [`%${search}%`], (err, countResult) => {
+      if (err) {
+        console.error("Error counting inactive company:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      const totalItems = countResult[0].count || 0;
+      const totalPages = Math.ceil(totalItems / limit);
+
+      // Fetch inactive companies with sorting and filtering
+      const dataQuery = `SELECT * FROM hrm_companys WHERE deleted=true AND companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
+
+      pool.query(
+        dataQuery,
+        [`%${search}%`, limit, offset],
+        (err, dataResult) => {
+          if (err) {
+            console.error("Error fetching inactive company:", err);
+            return res.status(500).json({ error: "Internal Server Error" });
+          }
+
+          res.status(200).json({
+            data: dataResult,
+            totalItems,
+            totalPages,
+            currentPage: page,
+            isNext: page < totalPages,
+          });
+        }
+      );
+    });
+  } catch (error) {
+    console.error("Error fetching inactive Company list:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
