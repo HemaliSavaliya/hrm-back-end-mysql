@@ -155,7 +155,9 @@ module.exports.adminListActive = async (req, res) => {
       const sql = `
         SELECT a.*, c.companyName AS companyName 
         FROM hrm_admins a 
-        LEFT JOIN hrm_companys c ON a.companyId = c.id WHERE deleted = false AND name LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?
+        LEFT JOIN hrm_companys c ON a.companyId = c.id 
+        WHERE a.deleted = false AND a.name LIKE ? 
+        ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?
       `;
 
       pool.query(sql, [`%${search}%`, limit, offset], (err, result) => {
@@ -213,7 +215,9 @@ module.exports.adminListInactive = async (req, res) => {
       const sql = `
         SELECT a.*, c.companyName AS companyName 
         FROM hrm_admins a 
-        LEFT JOIN hrm_companys c ON a.companyId = c.id WHERE deleted = true AND name LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?
+        LEFT JOIN hrm_companys c ON a.companyId = c.id 
+        WHERE a.deleted = true AND a.name LIKE ? 
+        ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?
       `;
 
       pool.query(sql, [`%${search}%`, limit, offset], (err, result) => {
