@@ -132,7 +132,7 @@ module.exports.adminListActive = async (req, res) => {
     const offset = (page - 1) * limit;
 
     // whitelist columns that can be sorted
-    const validSortColumns = ["name", "email", "password", "role"];
+    const validSortColumns = ["name", "email", "companyId", "role"];
 
     if (!validSortColumns.includes(sortBy)) {
       return res.status(400).json({ error: "Invalid sort column" });
@@ -192,7 +192,7 @@ module.exports.adminListInactive = async (req, res) => {
     const offset = (page - 1) * limit;
 
     // whitelist columns that can be sorted
-    const validSortColumns = ["name", "email", "password", "role"];
+    const validSortColumns = ["name", "email", "companyId", "role"];
 
     if (!validSortColumns.includes(sortBy)) {
       return res.status(400).json({ error: "Invalid sort column" });
