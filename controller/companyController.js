@@ -306,6 +306,7 @@ module.exports.deleteCompany = async (req, res) => {
                 { tableName: "hrm_projects", foreignKey: "companyId" },
                 { tableName: "hrm_timer_tracker", foreignKey: "companyId" },
                 { tableName: "hrm_roles", foreignKey: "companyId" },
+                { tableName: "hrm_holidays", foreignKey: "companyId" },
               ];
 
               // Track errors in the forEach loop
@@ -371,6 +372,28 @@ module.exports.deleteCompany = async (req, res) => {
       return res.status(500).json({ error: "Internal Server Error" });
     }
   });
+};
+
+module.exports.companyAllList = async (req, res) => {
+  try {
+    const sql = "SELECT * FROM hrm_companys";
+
+    pool.query(sql, (err, result) => {
+      if (err) {
+        console.error("Error fetching company", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      if (result.length > 0) {
+        res.status(200).json(result);
+      } else {
+        return res.status(404).json({ error: "No Company Found!" });
+      }
+    });
+  } catch (error) {
+    console.error("Error Fetching company list:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
 module.exports.companyListActive = async (req, res) => {

@@ -22,7 +22,8 @@ const companyRouter = require("./routes/companyRoute");
 const adminRouter = require("./routes/adminRoute");
 const roleRouter = require("./routes/roleRoute");
 const permissionRouter = require("./routes/permissionRoute");
-const passwordRouter = require("./routes/forgotPasswordRoute.js");
+const passwordRouter = require("./routes/forgotPasswordRoute");
+const holidayRoute = require("./routes/holidayRoute");
 
 dotenv.config();
 const app = express();
@@ -61,6 +62,7 @@ app.use("/api", adminRouter);
 app.use("/api", roleRouter);
 app.use("/api", permissionRouter);
 app.use("/api", passwordRouter);
+app.use("/api", holidayRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port: ${PORT}`);

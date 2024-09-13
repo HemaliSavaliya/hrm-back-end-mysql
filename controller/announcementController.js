@@ -415,3 +415,73 @@ module.exports.announcementList = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+// module.exports.announcementList = async (req, res) => {
+//   try {
+//     const page = Number(req.query.page) || 1;
+//     const limit = Number(req.query.limit) || 5;
+//     const companyId = req.query.companyId;
+//     const search = req.query.search || "";
+//     const sortBy = req.query.sortBy || "announcementTitle";
+//     const sortOrder = req.query.sortOrder === "desc" ? "desc" : "asc";
+
+//     if (!companyId) {
+//       return res.status(400).json({ error: "Company ID is required" });
+//     }
+
+//     const offset = (page - 1) * limit;
+
+//     // Whitelist columns that can be sorted
+//     const validSortColumns = [
+//       "announcementTitle",
+//       "announcementDetails",
+//       "selectDepartment",
+//     ];
+
+//     if (!validSortColumns.includes(sortBy)) {
+//       return res.status(400).json({ error: "Invalid sort column" });
+//     }
+
+//     // Count total items with filtering
+//     const countQuery = `SELECT COUNT(*) AS count FROM hrm_announcements WHERE deleted = false AND companyId = ? AND announcementTitle LIKE ?`;
+
+//     connection.query(
+//       countQuery,
+//       [companyId, `%${search}%`],
+//       (err, countResult) => {
+//         if (err) {
+//           console.error("Error counting announcement:", err);
+//           return res.status(500).json({ error: "Internal Server Error" });
+//         }
+
+//         const totalItems = countResult[0].count || 0;
+//         const totalPages = Math.ceil(totalItems / limit);
+
+//         // Fetch paginated data with sorting and filtering
+//         const dataQuery = `SELECT * FROM hrm_announcements WHERE deleted = false AND companyId = ? AND announcementTitle LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
+
+//         connection.query(
+//           dataQuery,
+//           [companyId, `%${search}%`, limit, offset],
+//           (err, dataResult) => {
+//             if (err) {
+//               console.error("Error fetching announcement:", err);
+//               return res.status(500).json({ error: "Internal Server Error" });
+//             }
+
+//             res.status(200).json({
+//               data: dataResult,
+//               totalItems,
+//               totalPages,
+//               currentPage: page,
+//               isNext: page < totalPages,
+//             });
+//           }
+//         );
+//       }
+//     );
+//   } catch (error) {
+//     console.error("Error fetching role list:", error);
+//     return res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };

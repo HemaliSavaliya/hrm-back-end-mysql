@@ -89,29 +89,6 @@ module.exports.updateRoleStatus = async (req, res) => {
   }
 };
 
-// module.exports.roleList = async (req, res) => {
-//   try {
-//     // Fetch all role from the database
-//     const getAllRole = "SELECT * FROM hrm_roles WHERE companyId = ?";
-
-//     connection.query(getAllRole, [req.user.companyId], (err, result) => {
-//       if (err) {
-//         console.error("Error fetching role", err);
-//         return res.status(500).json({ error: "Internal Server Error" });
-//       }
-
-//       if (result.length > 0) {
-//         res.status(200).json(result);
-//       } else {
-//         return res.status(404).json({ error: "No role found!" });
-//       }
-//     });
-//   } catch (error) {
-//     console.error("Error Fetching role list:", error);
-//     return res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
-
 module.exports.roleList = async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
@@ -129,6 +106,7 @@ module.exports.roleList = async (req, res) => {
 
     // Whitelist columns that can be sorted
     const validSortColumns = ["roleName", "date", "status"]; // Add other columns as needed
+    
     if (!validSortColumns.includes(sortBy)) {
       return res.status(400).json({ error: "Invalid sort column" });
     }
@@ -139,6 +117,7 @@ module.exports.roleList = async (req, res) => {
       FROM hrm_roles 
       WHERE companyId = ? AND roleName LIKE ?
     `;
+
     connection.query(
       countQuery,
       [companyId, `%${search}%`],

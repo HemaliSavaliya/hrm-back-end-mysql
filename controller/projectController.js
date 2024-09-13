@@ -206,8 +206,7 @@ module.exports.updateProject = async (req, res) => {
 
         // Update the project information
         project.clientEmail = req.body.clientEmail || project.clientEmail;
-
-        // Convert and format the endDate if provided
+// Convert and format the endDate if provided
         let endDateFormatted = project.endDate; // Use the current end date as default
         if (req.body.endDate) {
           const endDate = new Date(req.body.endDate);
@@ -229,6 +228,7 @@ module.exports.updateProject = async (req, res) => {
           endDateFormatted = `${endDate.getDate()} ${monthAbbreviation} ${endDate.getFullYear()}`;
         }
         project.endDate = endDateFormatted;
+        
 
         project.status = req.body.status || project.status;
 
