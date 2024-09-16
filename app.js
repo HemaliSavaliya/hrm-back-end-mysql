@@ -24,6 +24,7 @@ const roleRouter = require("./routes/roleRoute");
 const permissionRouter = require("./routes/permissionRoute");
 const passwordRouter = require("./routes/forgotPasswordRoute");
 const holidayRoute = require("./routes/holidayRoute");
+const expiringRoute = require("./routes/reminderRoute");
 
 dotenv.config();
 const app = express();
@@ -63,6 +64,7 @@ app.use("/api", roleRouter);
 app.use("/api", permissionRouter);
 app.use("/api", passwordRouter);
 app.use("/api", holidayRoute);
+app.use("/api", expiringRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port: ${PORT}`);

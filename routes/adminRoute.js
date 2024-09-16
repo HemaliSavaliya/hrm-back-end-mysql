@@ -13,5 +13,6 @@ router.put("/update-admin/:id", authenticate, updateAdmin);
 router.delete("/delete-admin/:id", authenticate, deleteAdmin);
 router.get("/admin-active-list", authenticate, adminListActive);
 router.get("/admin-inactive-list", authenticate, adminListInactive);
+// router.get("/admin-detail/:id", authenticate, getAdminById);
 
 module.exports = router;

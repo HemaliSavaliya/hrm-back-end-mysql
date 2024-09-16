@@ -240,3 +240,34 @@ module.exports.adminListInactive = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+// module.exports.getAdminById = async (req, res) => {
+//   try {
+//     // Extract adminId from the request parameters
+//     const adminId = req.params.id;
+
+//     // Query to fetch admin details by ID
+//     const sql = `SELECT a.*, c.companyName AS companyName FROM hrm_admins a LEFT JOIN hrm_companys c ON a.companyId = c.id WHERE a.id = ?`;
+
+//     // Execute the query
+//     pool.query(sql, [adminId], (err, result) => {
+//       if (err) {
+//         console.error("Error Fetching admin by ID", err);
+//         return res.status(500).json({ error: "Internal Server Error" });
+//       }
+
+//       if (result.length === 0) {
+//         return res.status(404).json({ error: "Admin not found" });
+//       }
+
+//       // Return the admin details
+//       res.status(200).json({
+//         success: true,
+//         data: result[0], // Return the first item since admin IDS are unique
+//       });
+//     });
+//   } catch (error) {
+//     console.error("Error fetching admin detail:", error);
+//     return res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };

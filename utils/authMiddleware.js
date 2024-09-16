@@ -53,6 +53,6 @@ module.exports.authenticate = async (req, res, next) => {
     next();
   } catch (error) {
     console.error("Error during authentication", error);
-    res.status(401).json({ error: "Invalid token" }, error);
+    res.status(401).json({ error: "Invalid token" });
   }
 };
