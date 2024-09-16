@@ -17,6 +17,8 @@ module.exports.expiringSubscriptions = async (req, res) => {
 
     // Execute the query with today and reminderDate as parameters
     connection.query(query, [today, reminderDate], (error, results) => {
+      console.log("res", results);
+
       if (error) {
         console.error("Error fetching expiring:", error);
         return res.status(500).json({ error: "Internal Server Error" });
