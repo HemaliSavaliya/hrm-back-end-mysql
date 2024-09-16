@@ -18,7 +18,7 @@ module.exports.expiringSubscriptions = async (req, res) => {
     // Execute the query with today and reminderDate as parameters
     connection.query(query, [today, reminderDate], (error, results) => {
       if (error) {
-        console.error("Error fetching expiring:", error);
+        console.error("Error fetching expiring subscriptions:", error);
         return res.status(500).json({ error: "Internal Server Error" });
       }
 
@@ -36,13 +36,13 @@ module.exports.expiringSubscriptions = async (req, res) => {
 
             // If no notification was sent today, insert a new one
             if (notificationResult.length === 0) {
-              const insertNotificationQuery = `INSERT INTO hrm_notifications (adminId, message) VALUES (?, ?)`;
+              const insertNotificationQuery = `INSERT INTO hrm_notifications (adminId, message, companyName, deleted) VALUES (?, ?, ?, ?)`;
 
               const message = `${admin.name}'s subscription is expiring on ${admin.subscriptionEndDate}`;
 
               connection.query(
                 insertNotificationQuery,
-                [admin.adminId, message],
+                [admin.adminId, message, admin.companyName, false],
                 (error) => {
                   if (error) {
                     return res
@@ -79,6 +79,27 @@ module.exports.getNotification = async (req, res) => {
     });
   } catch (error) {
     console.error("Error notification result:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+module.exports.deleteNotification = async (req, res) => {
+  try {
+    const notificationId = req.params.id;
+
+    const deletedQuery =
+      "UPDATE hrm_notifications SET deleted = true WHERE id = ?";
+
+    connection.query(deletedQuery, [notificationId], (err, result) => {
+      if (err) {
+        console.error("Error deleting notification:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      res.status(200).json({ message: "Notification marked as deleted" });
+    });
+  } catch (error) {
+    console.error("Error delete notification:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
