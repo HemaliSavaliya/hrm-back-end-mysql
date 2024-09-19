@@ -600,7 +600,7 @@ module.exports.renewSubscription = async (req, res) => {
     // Check if the user making the request is an superAdmin
     if (req.user && req.user.role === "SuperAdmin") {
       const companyId = req.params.id;
-      const { renewStartDate, renewEndDate } = req.body;
+      const { startDate, endDate } = req.body;
 
       // First, fetch the companyName based on companyId
       const getCompanyNameQuery = `SELECT companyName FROM hrm_companys WHERE id = ?`;
@@ -618,11 +618,11 @@ module.exports.renewSubscription = async (req, res) => {
         const companyName = companyResult[0].companyName;
 
         // Now insert or update the subscription in the subscription table
-        const query = `INSERT INTO hrm_company_subscriptions (companyId, companyName, renewStartDate, renewEndDate) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE renewStartDate = VALUES(renewStartDate), renewEndDate = VALUES(renewEndDate)`;
+        const query = `INSERT INTO hrm_company_subscriptions (companyId, companyName, startDate, endDate) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE startDate = VALUES(startDate), endDate = VALUES(endDate)`;
 
         pool.query(
           query,
-          [companyId, companyName, renewStartDate, renewEndDate],
+          [companyId, companyName, startDate, endDate],
           (err, result) => {
             if (err) {
               console.error("Error Renewing subscription:", err);
@@ -646,5 +646,3 @@ module.exports.renewSubscription = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-// in this i need to fetch company name according there company id i don't need to add companyName manually how to do that
