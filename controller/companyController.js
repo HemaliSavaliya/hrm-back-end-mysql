@@ -441,12 +441,24 @@ module.exports.companyListActive = async (req, res) => {
           c.companyPan, 
           c.companyGST, 
           c.subscription, 
-          COALESCE(cs.startDate, c.startDate) AS startDate, 
-          COALESCE(cs.endDate, c.endDate) AS endDate 
+          COALESCE(
+            (SELECT cs.startDate 
+            FROM hrm_company_subscriptions cs 
+            WHERE cs.companyId = c.id 
+            ORDER BY cs.endDate DESC 
+            LIMIT 1), 
+            c.startDate
+          ) AS startDate, 
+          COALESCE(
+            (SELECT cs.endDate 
+            FROM hrm_company_subscriptions cs 
+            WHERE cs.companyId = c.id 
+            ORDER BY cs.endDate DESC 
+            LIMIT 1), 
+            c.endDate
+          ) AS endDate 
         FROM 
           hrm_companys c
-        LEFT JOIN 
-          hrm_company_subscriptions cs ON c.id = cs.companyId
         WHERE 
           c.deleted = false 
           AND c.companyName LIKE ? 
@@ -527,12 +539,24 @@ module.exports.companyListInactive = async (req, res) => {
             c.companyPan, 
             c.companyGST, 
             c.subscription, 
-            COALESCE(cs.startDate, c.startDate) AS startDate, 
-            COALESCE(cs.endDate, c.endDate) AS endDate 
+            COALESCE(
+              (SELECT cs.startDate 
+              FROM hrm_company_subscriptions cs 
+              WHERE cs.companyId = c.id 
+              ORDER BY cs.endDate DESC 
+              LIMIT 1), 
+              c.startDate
+            ) AS startDate,  
+            COALESCE(
+              (SELECT cs.endDate 
+              FROM hrm_company_subscriptions cs 
+              WHERE cs.companyId = c.id 
+              ORDER BY cs.endDate DESC 
+              LIMIT 1), 
+              c.endDate
+            ) AS endDate 
           FROM 
             hrm_companys c
-          LEFT JOIN 
-            hrm_company_subscriptions cs ON c.id = cs.companyId
           WHERE 
             c.deleted = true 
             AND c.companyName LIKE ? 
