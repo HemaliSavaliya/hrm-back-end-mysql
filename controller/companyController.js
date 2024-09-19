@@ -441,8 +441,8 @@ module.exports.companyListActive = async (req, res) => {
           c.companyPan, 
           c.companyGST, 
           c.subscription, 
-          COALESCE(cs.renewStartDate, c.startDate) AS startDate, 
-          COALESCE(cs.renewEndDate, c.endDate) AS endDate 
+          COALESCE(cs.startDate, c.startDate) AS startDate, 
+          COALESCE(cs.endDate, c.endDate) AS endDate 
         FROM 
           hrm_companys c
         LEFT JOIN 
@@ -527,8 +527,8 @@ module.exports.companyListInactive = async (req, res) => {
             c.companyPan, 
             c.companyGST, 
             c.subscription, 
-            COALESCE(cs.renewStartDate, c.startDate) AS startDate, 
-            COALESCE(cs.renewEndDate, c.endDate) AS endDate 
+            COALESCE(cs.startDate, c.startDate) AS startDate, 
+            COALESCE(cs.endDate, c.endDate) AS endDate 
           FROM 
             hrm_companys c
           LEFT JOIN 
