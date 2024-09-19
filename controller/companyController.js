@@ -433,8 +433,28 @@ module.exports.companyListActive = async (req, res) => {
       const totalItems = countResult[0].count || 0;
       const totalPages = Math.ceil(totalItems / limit);
 
-      // Fetch active companies with sorting and filtering
-      const dataQuery = `SELECT * FROM hrm_companys WHERE deleted=false AND companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
+      // Fetch active companies with sorting and filtering, and renewal date logic
+      const dataQuery = `SELECT 
+          c.id, 
+          c.companyName, 
+          c.companyEmail, 
+          c.companyPan, 
+          c.companyGST, 
+          c.subscription, 
+          COALESCE(cs.renewStartDate, c.startDate) AS startDate, 
+          COALESCE(cs.renewEndDate, c.endDate) AS endDate 
+        FROM 
+          hrm_companys c
+        LEFT JOIN 
+          hrm_company_subscriptions cs ON c.id = cs.companyId
+        WHERE 
+          c.deleted = false 
+          AND c.companyName LIKE ? 
+        ORDER BY 
+          ${sortBy} ${sortOrder} 
+        LIMIT ? OFFSET ?`;
+
+      // const dataQuery = `SELECT * FROM hrm_companys WHERE deleted=false AND companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
 
       pool.query(
         dataQuery,
@@ -498,8 +518,29 @@ module.exports.companyListInactive = async (req, res) => {
       const totalItems = countResult[0].count || 0;
       const totalPages = Math.ceil(totalItems / limit);
 
-      // Fetch inactive companies with sorting and filtering
-      const dataQuery = `SELECT * FROM hrm_companys WHERE deleted = true AND companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
+      // Fetch inactive companies with sorting and filtering, and renewal date logic
+      const dataQuery = `
+          SELECT 
+            c.id, 
+            c.companyName, 
+            c.companyEmail, 
+            c.companyPan, 
+            c.companyGST, 
+            c.subscription, 
+            COALESCE(cs.renewStartDate, c.startDate) AS startDate, 
+            COALESCE(cs.renewEndDate, c.endDate) AS endDate 
+          FROM 
+            hrm_companys c
+          LEFT JOIN 
+            hrm_company_subscriptions cs ON c.id = cs.companyId
+          WHERE 
+            c.deleted = true 
+            AND c.companyName LIKE ? 
+          ORDER BY 
+            ${sortBy} ${sortOrder} 
+          LIMIT ? OFFSET ?`;
+
+      // const dataQuery = `SELECT * FROM hrm_companys WHERE deleted = true AND companyName LIKE ? ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
 
       pool.query(
         dataQuery,
@@ -553,3 +594,57 @@ module.exports.getCompanyLogo = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+module.exports.renewSubscription = async (req, res) => {
+  try {
+    // Check if the user making the request is an superAdmin
+    if (req.user && req.user.role === "SuperAdmin") {
+      const companyId = req.params.id;
+      const { renewStartDate, renewEndDate } = req.body;
+
+      // First, fetch the companyName based on companyId
+      const getCompanyNameQuery = `SELECT companyName FROM hrm_companys WHERE id = ?`;
+
+      pool.query(getCompanyNameQuery, [companyId], (err, companyResult) => {
+        if (err) {
+          console.error("Error fetching company name:", err);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        if (companyResult.length === 0) {
+          return res.status(404).json({ error: "Company not found" });
+        }
+
+        const companyName = companyResult[0].companyName;
+
+        // Now insert or update the subscription in the subscription table
+        const query = `INSERT INTO hrm_company_subscriptions (companyId, companyName, renewStartDate, renewEndDate) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE renewStartDate = VALUES(renewStartDate), renewEndDate = VALUES(renewEndDate)`;
+
+        pool.query(
+          query,
+          [companyId, companyName, renewStartDate, renewEndDate],
+          (err, result) => {
+            if (err) {
+              console.error("Error Renewing subscription:", err);
+              return res
+                .status(500)
+                .json({ error: "Error Renewing subscription" });
+            }
+
+            res
+              .status(200)
+              .json({ message: "Subscription renewed successfully" });
+          }
+        );
+      });
+    } else {
+      // User is not an superAdmin, deny access
+      res.status(403).json({ error: "Access denied" });
+    }
+  } catch (error) {
+    console.error("Error Creating Subscription:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// in this i need to fetch company name according there company id i don't need to add companyName manually how to do that
