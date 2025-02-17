@@ -14,7 +14,7 @@ module.exports.addTimerData = (req, res) => {
       }
 
       // Calculate the time difference in milliseconds
-      const timeDifference = stopTime - startTime;
+      const timeDifference = (stopTime - startTime) / (1000 * 60 * 60).toFixed(2);
 
       // Check if the time difference is a valid number
       if (isNaN(timeDifference)) {
@@ -22,7 +22,7 @@ module.exports.addTimerData = (req, res) => {
       }
 
       // Calculate the time difference to hours
-      const totalHours = timeDifference / (1000 * 60 * 60).toFixed(2);
+      const totalHours = parseFloat(timeDifference);
 
       // Set a threshold for total working hours (e.g., 8 hours)
       const requiredHours = 8;
@@ -34,6 +34,8 @@ module.exports.addTimerData = (req, res) => {
       } else if (totalHours > 0) {
         status = "Late";
       }
+
+      const productionHours = totalHours; // For this example, production time equals total hours.
 
       // Convert Date
       const currentDate = new Date();
@@ -55,9 +57,8 @@ module.exports.addTimerData = (req, res) => {
       const monthIndex = currentDate.getMonth() + 1;
       const monthAbbreviation = monthNames[monthIndex - 1];
       const day = currentDate.getDate();
-      const startingDate = `${
-        day < 10 ? "0" : ""
-      }${day} ${monthAbbreviation} ${year}`;
+      const startingDate = `${day < 10 ? "0" : ""
+        }${day} ${monthAbbreviation} ${year}`;
 
       const insertTimerQuery = `INSERT INTO hrm_timer_tracker (companyId, date, userId, userName, projectName, description, role, startTime, resumeTime, pauseTime, stopTime, hours, minutes, seconds, totalHours, status, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
@@ -77,6 +78,7 @@ module.exports.addTimerData = (req, res) => {
         req.body.minutes,
         req.body.seconds,
         totalHours,
+        productionHours,
         status,
         false,
       ];
